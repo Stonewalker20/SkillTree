@@ -5,7 +5,7 @@ from app.routers.skills import router as skills_router
 from app.routers.jobs import router as jobs_router
 from app.routers.evidence import router as evidence_router
 
-app = FastAPI(title="SkillTree API", version="0.1.0")
+app = FastAPI(title="SkillBridge API", version="0.1.0")
 
 @app.on_event("startup")
 async def on_startup():
