@@ -1,6 +1,6 @@
-# SkillTree
+# Skillbridge
 
-**SkillTree** is a web application designed to organize, validate, and match technical skills using real supporting evidence such as resumes, research papers, projects, and job listings. Instead of relying on shallow keyword matching, SkillTree models skills as structured entities backed by concrete artifacts, enabling more transparent and explainable skill–job alignment.
+**SkillBridge** is a web application designed to organize, validate, and match technical skills using real supporting evidence such as resumes, research papers, projects, and job listings. Instead of relying on shallow keyword matching, SkillTree models skills as structured entities backed by concrete artifacts, enabling more transparent and explainable skill–job alignment.
 
 This repository contains the **backend services, database schema, and development data** that power the application.
 
@@ -41,7 +41,7 @@ The result is a system that is easier to audit, extend, and reason about.
 
 ## System Overview
 
-At a high level, SkillTree consists of:
+At a high level, SkillBridge consists of:
 
 * A FastAPI backend exposing REST endpoints
 * A MongoDB database storing skills, evidence, and matches
@@ -68,7 +68,7 @@ All collections include realistic sample data to support development and testing
 ## Repository Structure
 
 ```
-skilltree/
+skillbridge/
   backend/        # FastAPI application
   data/seed/      # Sample MongoDB seed data
   infra/          # Docker Compose configuration
@@ -133,7 +133,7 @@ Advanced matching logic, authentication, and deployment are planned for later ph
 ## Team
 
 * **Backend & Database:** Cordell Stonecipher
-* **Frontend/UI:** Spencer
+* **Frontend/UI:** Spencer Roeren
 * **Data Collection & Curation:** Justin Elia, Jennifer Gonzalelz
 
 ---
