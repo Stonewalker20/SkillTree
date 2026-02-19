@@ -29,3 +29,6 @@ progressReports.tex
 # Docker
 **/.docker/
 
+# Front End
+frontend/node_modules
+frontend/src
