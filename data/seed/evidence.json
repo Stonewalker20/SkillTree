@@ -2,7 +2,7 @@
   {
     "user_email":"student1@oakland.edu",
     "type":"resume",
-    "title":"Resume - Student 1",
+    "title":"Resume – Student 1",
     "source":"local_upload",
     "text_excerpt":"Implemented FastAPI services for internal tooling and integrated MongoDB for structured storage of artifacts.",
     "tags":["Python","FastAPI","MongoDB","REST APIs"]
@@ -22,6 +22,45 @@
     "source":"github",
     "text_excerpt":"Built a Docker-based ETL workflow with reproducible builds, versioned configs, and structured outputs.",
     "tags":["Docker","Git","Python"]
+  },
+  {
+    "user_email":"student3@oakland.edu",
+    "type":"resume",
+    "title":"Resume – Student 3",
+    "source":"local_upload",
+    "text_excerpt":"Trained LSTM models for sequence classification and evaluated performance across multiple NLP benchmarks.",
+    "tags":["LSTM","NLP","Python","PyTorch"]
+  },
+  {
+    "user_email":"student3@oakland.edu",
+    "type":"project",
+    "title":"Job Skill Recommender",
+    "source":"github",
+    "text_excerpt":"Built a skill gap analysis tool using BM25 ranking and scikit-learn classifiers on LinkedIn job posting data.",
+    "tags":["BM25","scikit-learn","Python","Machine Learning","Data Cleaning"]
+  },
+  {
+    "user_email":"student4@oakland.edu",
+    "type":"resume",
+    "title":"Resume – Student 4",
+    "source":"local_upload",
+    "text_excerpt":"Developed React dashboards and TypeScript components integrated with RESTful backend services.",
+    "tags":["React","TypeScript","HTML/CSS","REST APIs"]
+  },
+  {
+    "user_email":"student4@oakland.edu",
+    "type":"certification",
+    "title":"AWS Cloud Practitioner",
+    "source":"aws_certification",
+    "text_excerpt":"Demonstrated foundational knowledge of AWS services including EC2, S3, and IAM.",
+    "tags":["AWS","Linux","Cloud"]
+  },
+  {
+    "user_email":"student5@oakland.edu",
+    "type":"paper",
+    "title":"Salary Prediction from Resume Skill Signals",
+    "source":"course_project",
+    "text_excerpt":"Trained a regression model on web-scraped job posting data to predict expected compensation from extracted skill features.",
+    "tags":["Machine Learning","Feature Engineering","Python","Web Scraping","Pandas","NumPy"]
   }
 ]
-

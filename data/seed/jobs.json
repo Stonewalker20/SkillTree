@@ -14,6 +14,45 @@
     "source":"hand-collected",
     "description_excerpt":"Clean datasets, write SQL queries, and generate dashboard-ready summaries for stakeholders.",
     "required_skills":["SQL","Python","Git"]
+  },
+  {
+    "title":"Machine Learning Engineer Intern",
+    "company":"Detroit AI Labs",
+    "location":"Detroit, MI",
+    "source":"linkedin",
+    "description_excerpt":"Train and evaluate ML models for classification and ranking tasks using scikit-learn and PyTorch.",
+    "required_skills":["Python","scikit-learn","PyTorch","Git","Machine Learning"]
+  },
+  {
+    "title":"Frontend Developer",
+    "company":"Midwest SaaS Co",
+    "location":"Ann Arbor, MI",
+    "source":"linkedin",
+    "description_excerpt":"Build responsive UI components and integrate with backend REST APIs.",
+    "required_skills":["React","TypeScript","HTML/CSS","REST APIs","Git"]
+  },
+  {
+    "title":"Data Engineer Intern",
+    "company":"Ford Motor Company",
+    "location":"Dearborn, MI",
+    "source":"linkedin",
+    "description_excerpt":"Build and maintain data pipelines, support ETL workflows, and work with large structured datasets.",
+    "required_skills":["Python","SQL","Docker","Git","Data Cleaning"]
+  },
+  {
+    "title":"NLP Research Assistant",
+    "company":"Oakland University",
+    "location":"Rochester, MI",
+    "source":"hand-collected",
+    "description_excerpt":"Assist faculty in building text classification and information retrieval pipelines for academic research.",
+    "required_skills":["Python","NLP","Information Retrieval","scikit-learn","LSTM"]
+  },
+  {
+    "title":"Data Science Intern",
+    "company":"Quicken Loans",
+    "location":"Detroit, MI",
+    "source":"linkedin",
+    "description_excerpt":"Analyze mortgage datasets, build predictive models, and present findings to business stakeholders.",
+    "required_skills":["Python","Pandas","NumPy","Machine Learning","SQL","Tableau"]
   }
 ]
-
