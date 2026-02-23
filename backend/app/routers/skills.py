@@ -3,16 +3,32 @@ from app.core.db import get_db
 from app.models.skill import SkillIn, SkillOut
 from app.utils.mongo import oid_str
 from bson import ObjectId
+from pymongo import ReturnDocument
 from datetime import datetime, timezone
+from pydantic import BaseModel
+from typing import Optional
 
 router = APIRouter()
 
 @router.get("/", response_model=list[SkillOut])
 async def list_skills():
     db = get_db()
-    cursor = db["skills"].find({}, {"name": 1, "category": 1, "aliases": 1})
+    cursor = db["skills"].find(
+        {},
+        {"name": 1, "category": 1, "aliases": 1, "proficiency": 1, "last_used_at": 1},
+    )
     docs = await cursor.to_list(length=500)
-    return [{"id": oid_str(d["_id"]), "name": d["name"], "category": d["category"], "aliases": d.get("aliases", [])} for d in docs]
+    return [
+        {
+            "id": oid_str(d["_id"]),
+            "name": d["name"],
+            "category": d["category"],
+            "aliases": d.get("aliases", []),
+            "proficiency": d.get("proficiency"),
+            "last_used_at": d.get("last_used_at"),
+        }
+        for d in docs
+    ]
 
 @router.post("/", response_model=SkillOut)
 async def create_skill(payload: SkillIn):
@@ -20,6 +36,39 @@ async def create_skill(payload: SkillIn):
     doc = payload.model_dump()
     res = await db["skills"].insert_one(doc)
     return {"id": oid_str(res.inserted_id), **doc}
+
+
+class SkillPatch(BaseModel):
+    proficiency: Optional[int] = None
+    last_used_at: Optional[datetime] = None
+
+
+@router.patch("/{skill_id}", response_model=SkillOut)
+async def patch_skill(skill_id: str, payload: SkillPatch):
+    db = get_db()
+    try:
+        oid = ObjectId(skill_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid skill_id")
+    update = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if not update:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = await db["skills"].find_one_and_update(
+        {"_id": oid},
+        {"$set": update},
+        return_document=ReturnDocument.AFTER,
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Skill not found")
+    return {
+        "id": oid_str(result["_id"]),
+        "name": result["name"],
+        "category": result["category"],
+        "aliases": result.get("aliases", []),
+        "proficiency": result.get("proficiency"),
+        "last_used_at": result.get("last_used_at"),
+    }
+
 
 def now_utc():
     return datetime.now(timezone.utc)
@@ -131,3 +180,48 @@ async def skill_gaps(threshold: int = Query(default=0, ge=0, le=10)):
     return {"threshold": threshold, "results": rows}
 
 
+@router.get("/gaps/confirmed")
+async def confirmed_skill_gaps(
+    user_id: str = Query(..., description="User identifier"),
+    threshold: int = Query(default=0, ge=0, le=100),
+):
+    db = get_db()
+    pipeline = [
+        {"$match": {"user_id": user_id}},
+        {"$unwind": "$confirmed"},
+        {"$group": {"_id": "$confirmed.skill_id"}},
+        {
+            "$lookup": {
+                "from": "skills",
+                "localField": "_id",
+                "foreignField": "_id",
+                "as": "skill",
+            }
+        },
+        {
+            "$lookup": {
+                "from": "evidence",
+                "localField": "_id",
+                "foreignField": "skill_ids",
+                "as": "evidence_docs",
+            }
+        },
+        {"$addFields": {"evidence_count": {"$size": "$evidence_docs"}}},
+        {"$match": {"evidence_count": {"$lte": threshold}}},
+    ]
+    cursor = db["resume_skill_confirmations"].aggregate(pipeline)
+    rows = await cursor.to_list(length=500)
+    for r in rows:
+        r["skill_id"] = oid_str(r["_id"])
+        if r.get("skill"):
+            skill = r["skill"][0] if r["skill"] else {}
+            r["skill_name"] = skill.get("name", "")
+            r["category"] = skill.get("category", "")
+        else:
+            r["skill_name"] = ""
+            r["category"] = ""
+        r["evidence_count"] = r.get("evidence_count", 0)
+        del r["_id"]
+        del r["skill"]
+        del r["evidence_docs"]
+    return {"user_id": user_id, "threshold": threshold, "results": rows}
