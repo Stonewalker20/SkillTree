@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from app.core.db import connect_to_mongo, close_mongo_connection
 from app.routers.health import router as health_router
 from app.routers.skills import router as skills_router
@@ -8,6 +9,12 @@ from app.routers.evidence import router as evidence_router
 from app.routers.resumes import router as resumes_router
 
 app = FastAPI(title="SkillBridge API", version="0.1.0")
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
+
 
 @app.on_event("startup")
 async def on_startup():
