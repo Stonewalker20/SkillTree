@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, HTTPException
 from app.core.db import get_db
-from app.models.skill import SkillIn, SkillOut
+from app.models.skill import SkillIn, SkillOut, SkillUpdate
 from app.utils.mongo import oid_str
 from bson import ObjectId
 from pymongo import ReturnDocument
@@ -69,6 +69,34 @@ async def patch_skill(skill_id: str, payload: SkillPatch):
         "last_used_at": result.get("last_used_at"),
     }
 
+@router.patch("/{skill_id}", response_model=SkillOut)
+async def update_skill(skill_id: str, payload: SkillUpdate):
+    db = get_db()
+
+    try:
+        oid = ObjectId(skill_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid skill_id")
+
+    updates = {k: v for k, v in payload.model_dump(exclude_none=True).items()}
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields provided to update")
+
+    updates["updated_at"] = now_utc()
+
+    res = await db["skills"].update_one({"_id": oid}, {"$set": updates})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Skill not found")
+
+    doc = await db["skills"].find_one({"_id": oid})
+    return {
+        "id": oid_str(doc["_id"]),
+        "name": doc.get("name", ""),
+        "category": doc.get("category", ""),
+        "aliases": doc.get("aliases", []),
+        "proficiency": doc.get("proficiency"),
+        "last_used_at": doc.get("last_used_at"),
+    }
 
 def now_utc():
     return datetime.now(timezone.utc)
