@@ -3,7 +3,7 @@ from app.core.db import get_db
 
 router = APIRouter()
 
-@router.get("/health")
+@router.get("/")
 async def health():
     db = get_db()
     cols = await db.list_collection_names()
