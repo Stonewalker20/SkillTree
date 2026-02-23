@@ -20,3 +20,6 @@ class SkillOut(BaseModel):
     proficiency: Optional[int] = None
     last_used_at: Optional[datetime] = None
 
+class SkillUpdate(BaseModel):
+    proficiency: Optional[int] = Field(default=None, ge=0, le=5)
+    last_used_at: Optional[datetime] = None
