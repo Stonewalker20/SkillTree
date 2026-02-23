@@ -10,6 +10,23 @@
   {"name":"scikit-learn","category":"ML","aliases":["sklearn"]},
   {"name":"Information Retrieval","category":"ML/IR","aliases":["IR"]},
   {"name":"NLP","category":"ML","aliases":["natural language processing"]},
-  {"name":"SQL","category":"Databases","aliases":[]}
+  {"name":"SQL","category":"Databases","aliases":[]},
+  {"name":"Machine Learning","category":"ML","aliases":["ML"]},
+  {"name":"Data Analysis","category":"Analytics","aliases":["data analytics"]},
+  {"name":"Pandas","category":"ML","aliases":[]},
+  {"name":"NumPy","category":"ML","aliases":[]},
+  {"name":"JavaScript","category":"Programming","aliases":["JS"]},
+  {"name":"TypeScript","category":"Programming","aliases":["TS"]},
+  {"name":"React","category":"Frontend","aliases":[]},
+  {"name":"HTML/CSS","category":"Frontend","aliases":["html","css"]},
+  {"name":"Linux","category":"Tools","aliases":[]},
+  {"name":"AWS","category":"Cloud","aliases":["Amazon Web Services"]},
+  {"name":"Excel","category":"Tools","aliases":["spreadsheets"]},
+  {"name":"Tableau","category":"Analytics","aliases":[]},
+  {"name":"LSTM","category":"ML","aliases":["Long Short-Term Memory"]},
+  {"name":"TensorFlow","category":"ML","aliases":[]},
+  {"name":"BM25","category":"ML/IR","aliases":[]},
+  {"name":"Web Scraping","category":"Data","aliases":["scraping"]},
+  {"name":"Data Cleaning","category":"Data","aliases":["data wrangling"]},
+  {"name":"Feature Engineering","category":"ML","aliases":[]}
 ]
-
