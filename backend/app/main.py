@@ -5,6 +5,7 @@ from app.routers.skills import router as skills_router
 from app.routers.jobs import router as jobs_router
 from app.routers.evidence import router as evidence_router
 from app.routers.resumes import router as resumes_router
+from app.routers.confirmations import router as confirmations_router
 
 app = FastAPI(title="SkillBridge API", version="0.1.0")
 
@@ -21,3 +22,4 @@ app.include_router(skills_router, prefix="/skills", tags=["skills"])
 app.include_router(jobs_router, prefix="/jobs", tags=["jobs"])
 app.include_router(evidence_router, prefix="/evidence", tags=["evidence"])
 app.include_router(resumes_router, prefix="/ingest/resume", tags=["resume"])
+app.include_router(confirmations_router, prefix="/resumes", tags=["confirmations"])
