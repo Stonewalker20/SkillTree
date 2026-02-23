@@ -11,18 +11,46 @@ from typing import Optional
 router = APIRouter()
 
 @router.get("/", response_model=list[SkillOut])
-async def list_skills():
+async def list_skills(
+    q: str | None = Query(default=None, description="Search skill name"),
+    category: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    skip: int = Query(default=0, ge=0),
+):
     db = get_db()
-    cursor = db["skills"].find(
-        {},
-        {"name": 1, "category": 1, "aliases": 1, "proficiency": 1, "last_used_at": 1},
+
+    filt = {}
+
+    if q:
+        filt["name"] = {"$regex": q, "$options": "i"}
+
+    if category:
+        filt["category"] = category
+
+    cursor = (
+        db["skills"]
+        .find(
+            filt,
+            {
+                "name": 1,
+                "category": 1,
+                "aliases": 1,
+                "proficiency": 1,
+                "last_used_at": 1,
+            },
+        )
+        .sort("name", 1)
+        .skip(skip)
+        .limit(limit)
     )
-    docs = await cursor.to_list(length=500)
+
+    docs = await cursor.to_list(length=limit)
+
     return [
         {
             "id": oid_str(d["_id"]),
-            "name": d["name"],
-            "category": d["category"],
+            "name": d.get("name", ""),
+            "category": d.get("category", ""),
             "aliases": d.get("aliases", []),
             "proficiency": d.get("proficiency"),
             "last_used_at": d.get("last_used_at"),

@@ -6,8 +6,20 @@ from app.routers.confirmations import router as confirmations_router
 from app.routers.jobs import router as jobs_router
 from app.routers.evidence import router as evidence_router
 from app.routers.resumes import router as resumes_router
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="SkillBridge API", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=False,  # set True ONLY if you use cookie-based auth
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def on_startup():
