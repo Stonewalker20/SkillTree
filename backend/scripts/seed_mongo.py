@@ -111,6 +111,11 @@ def ensure_indexes(db) -> None:
     db.skills.create_index([("name", ASCENDING)], unique=True)
     db.skills.create_index([("aliases", ASCENDING)])
 
+    db.resume_skill_confirmations.create_index(
+        [("user_id", ASCENDING), ("resume_snapshot_id", ASCENDING)],
+        unique=True,
+    )
+
     db.resume_snapshots.create_index([("user_id", ASCENDING), ("created_at", ASCENDING)])
     db.skill_extractions.create_index([("resume_snapshot_id", ASCENDING), ("created_at", ASCENDING)])
 
