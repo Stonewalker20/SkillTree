@@ -11,7 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="SkillBridge API", version="0.1.0")
 
-<<<<<<< HEAD
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -22,13 +21,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-=======
-
-@app.get("/", include_in_schema=False)
-def root():
-    return RedirectResponse(url="/docs")
-
->>>>>>> 2decbb16106280c377dd1407dfd7f91a2da71f7a
 
 @app.on_event("startup")
 async def on_startup():
