@@ -462,6 +462,36 @@ def seed_resumes_from_raw_csvs(db, raw_dir: Path, user_id: str, limit: int, wipe
       - Resume_html (optional)
       - Category
     """
+    USER_POOL = [user_id] + [f"{user_id}_{i}" for i in range(1, 999)]  # rotate user_ids for variety
+    CATEGORY_ICON_MAP = {
+    "ACCOUNTANT": "/images/icons/accountant.png",
+    "ADVOCATE": "/images/icons/advocate.png",
+    "AGRICULTURE": "/images/icons/agriculture.png",
+    "APPAREL": "/images/icons/apparel.png",
+    "ARTS": "/images/icons/arts.png",
+    "AUTOMOBILE": "/images/icons/automobile.png",
+    "AVIATION": "/images/icons/aviation.png",
+    "BANKING": "/images/icons/banking.png",
+    "BPO": "/images/icons/bpo.png",
+    "BUSINESS-DEVELOPMENT": "/images/icons/business-dev.png",
+    "CHEF": "/images/icons/chef.png",
+    "CONSTRUCTION": "/images/icons/construction.png",
+    "CONSULTANT": "/images/icons/consultant.png",
+    "DESIGNER": "/images/icons/designer.png",
+    "DIGITAL-MEDIA": "/images/icons/digital-media.png",
+    "ENGINEERING": "/images/icons/engineering.png",
+    "FINANCE": "/images/icons/finance.png",
+    "FITNESS": "/images/icons/fitness.png",
+    "HEALTHCARE": "/images/icons/healthcare.png",
+    "HR": "/images/icons/hr.png",
+    "INFORMATION-TECHNOLOGY": "/images/icons/it.png",
+    "PUBLIC-RELATIONS": "/images/icons/pr.png",
+    "SALES": "/images/icons/sales.png",
+    "TEACHER": "/images/icons/teacher.png",
+    "TRANSPORT": "/images/icons/transport.png",
+    "OTHER": "/images/icons/other.png",
+    }
+
     col: Collection = db.resume_snapshots
     if wipe:
         col.delete_many({})
@@ -499,8 +529,15 @@ def seed_resumes_from_raw_csvs(db, raw_dir: Path, user_id: str, limit: int, wipe
             resume_id = clean_text(row.get(id_col)) if id_col else ""
             category = clean_text(row.get(cat_col)) if cat_col else ""
 
+            # Rotate user_ids so you get variety (deterministic)
+            uid = USER_POOL[inserted % len(USER_POOL)]
+
+            # Use category icon if available
+            cat = (category or "").strip().upper()
+            icon = CATEGORY_ICON_MAP.get(cat, DEFAULT_RESUME_ICON)
+
             doc = {
-                "user_id": user_id,
+                "user_id": uid,
                 "source_type": "kaggle",
                 "raw_text": raw_text,
                 "metadata": {
@@ -509,9 +546,16 @@ def seed_resumes_from_raw_csvs(db, raw_dir: Path, user_id: str, limit: int, wipe
                     "resume_id": resume_id,
                     "category": category,
                 },
-                "image_ref": DEFAULT_RESUME_ICON,
+                "image_ref": icon,
                 "created_at": NOW(),
             }
+
+            if resume_id and category:
+                cat_upper = category.strip().upper()
+                doc["metadata"]["pdf_relpath"] = (
+                    f"backend/data/raw/resume_dataset/data/data/"
+                    f"{cat_upper}/{resume_id}.pdf"
+                )
 
             if html_col:
                 html = clean_text(row.get(html_col))
