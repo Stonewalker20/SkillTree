@@ -14,6 +14,8 @@
 \usepackage{fancyhdr}
 \usepackage{xcolor}
 \usepackage{lastpage}
+\usepackage{tikz}
+\usepackage{subcaption}
 
 % ---------------------------
 % Header / Footer (Fancy)
@@ -145,14 +147,13 @@
   \vspace*{1in}
   {\LARGE \textbf{SkillBridge Weekly Progress Reports}\par}
   \vspace{0.5in}
-  \includegraphics[width=0.33\textwidth]{logo.png}\\
+  \includegraphics[width=0.33\textwidth]{images/SkillBridgeLogo.png}\\
   \vspace{0.5in}
   {\large CSI 4999 -- Senior Capstone (Winter 2026)\par}
   \vspace{0.5in}
   \begin{tabular}{rl}
     \textbf{Team Members:} &
     Justin Elia \\
-    & Jennifer Gonzalez \\
     & Spencer Roeren \\
     & Cordell Stonecipher \\
   \end{tabular}
@@ -165,6 +166,185 @@
 \clearpage
 
 % =========================================================
+% WEEK 3 (PR3) -- MOST RECENT
+% =========================================================
+\WeekReport{3}{February 19 -- February 25, 2026}{
+Week 3 focused on transitioning SkillBridge from automated extraction to user-controlled validation and structured skill tracking. The backend was extended to support skill confirmation, proficiency updates, and user-specific gap analysis. These updates transform extracted skills into validated entities and enable meaningful evidence-based gap detection.
+}{
+Justin Elia & Implemented UC 3.3 aggregation pipeline  \\
+Spencer Roeren & Implemented UC 2.4 &  \\
+Cordell Stonecipher & UC 2.2 API endpoints + aggregation logic + testing & (Images: Swagger + Compass) \\
+}
+
+\subsection*{Week 3 -- Implemented Use Cases}
+\addcontentsline{toc}{subsection}{Week 3 -- Implemented Use Cases}
+\begin{itemize}
+  \item \textbf{UC 3.3 – Confirm / Reject Extracted Skills}
+  \item \textbf{UC 2.2 – Update Skill Proficiency and Last Used Date}
+  \item \textbf{UC 2.4 – Confirmed Skill Gaps (User-Specific)}
+\end{itemize}
+
+\subsection*{Week 3 -- Screenshots of Implemented Features}
+\addcontentsline{toc}{subsection}{Week 3 -- Screenshots of Implemented Features}
+
+\ImagePage{3}
+  {images/pr3_compass_confirm_doc.png}{Swagger: UC 3.3 POST confirm-skills executed}
+  {UC 3.3 Validation}
+
+\ImagePage{3}
+  {images/pr3_compass_skill_updated.png}{Swagger: UC 2.2 PATCH skill proficiency executed}
+  {UC 2.2 Validation}
+
+\ImagePage{3}
+  {images/pr3_compass_confirmed_gaps.png}{Swagger: UC 2.4 confirmed gaps endpoint executed}
+  {UC 2.4 Confirmed Gaps Validation}
+
+  \ImagePage{2}{images/pr3_usecase_diagram_highlighted.png}{Use Case Diagram Highlighting Implemented Use Cases (UC 3.3, UC 2.2, UC 2.4)}
+
+\subsection*{Week 3 -- Database Queries Used (MongoDB Equivalent to SQL)}
+\addcontentsline{toc}{subsection}{Week 3 -- Database Queries Used (MongoDB Equivalent to SQL)}
+
+\noindent
+\textbf{UC 3.3 -- Confirm / Reject Extracted Skills}
+\begin{verbatim}
+db.resume_skill_confirmations.updateOne(
+  { resume_snapshot_id: ObjectId("<snapshot_id>"), user_id: "student1" },
+  { $set: { confirmed: [...], rejected: [...], edited: [...], updated_at: new Date() },
+    $setOnInsert: { created_at: new Date() } },
+  { upsert: true }
+)
+\end{verbatim}
+
+\noindent
+\textbf{UC 2.2 -- Update Skill Proficiency}
+\begin{verbatim}
+db.skills.updateOne(
+  { _id: ObjectId("<skill_id>") },
+  { $set: { proficiency: 4, last_used_at: new Date(), updated_at: new Date() } }
+)
+\end{verbatim}
+
+\noindent
+\textbf{UC 2.4 -- Confirmed Skill Gaps}
+\begin{verbatim}
+db.resume_skill_confirmations.aggregate([
+  { $match: { user_id: "student1" } },
+  { $unwind: "$confirmed" },
+  { $group: { _id: "$confirmed.skill_id" } },
+  { $lookup: { from: "skills", localField: "_id", foreignField: "_id", as: "skill" } },
+  { $lookup: { from: "evidence", localField: "_id", foreignField: "skill_ids", as: "evidence_docs" } },
+  { $addFields: { evidence_count: { $size: "$evidence_docs" } } },
+  { $match: { evidence_count: { $lte: 0 } } }
+])
+\end{verbatim}
+
+\subsection*{Week 3 -- Video Demonstration}
+\addcontentsline{toc}{subsection}{Week 3 -- Video Demonstration}
+\noindent
+Video link: \href{https://www.loom.com/share/3b685219180343ff8ff40dd97bf698a3}{https://www.loom.com/share/3b685219180343ff8ff40dd97bf698a3}
+
+% =========================================================
+% WEEK 2
+% =========================================================
+
+
+\WeekReport{2}{(Feb 15th)}{
+Week 2 focused on implementing and validating three fully functional backend use cases using realistic seeded datasets. The system integrates Kaggle resume data and LinkedIn job postings into MongoDB and exposes structured FastAPI endpoints for resume ingestion, automated skill extraction, and skill gap analysis. All features were tested via Swagger and validated in MongoDB Compass to confirm correct persistence, aggregation behavior, and UI compatibility.
+
+}{
+Justin Elia & dataset collection tasks & \\
+Spencer Roeren & Front End Design &  \\
+Cordell Stonecipher & Implemented all use cases & Images Below\\
+}
+
+\subsection*{Week 2 -- Implemented Use Cases}
+\addcontentsline{toc}{subsection}{Week 2 -- Implemented Use Cases}
+\begin{itemize}
+  \item \textbf{UC 3.1 -- Resume Ingestion}
+  \item \textbf{UC 3.2 -- Skill Extraction}
+  \item \textbf{UC 2.4 -- Skill Gap Analysis}
+\end{itemize}
+
+\subsection*{Week 2 -- Screenshots of Implemented Features}
+\addcontentsline{toc}{subsection}{Week 2 -- Screenshots of Implemented Features}
+\MultiImagePageTwo{2}
+  {images/pr2_resume_ingest.png}{Swagger: UC 3.1 resume ingestion executed}
+  {images/pr2_db_resume_snapshots.png}{MongoDB Compass: resume\_snapshots collection document}
+  {UC 3.1 Evidence}
+
+\MultiImagePageTwo{2}
+  {images/pr2_skill_extraction.png}{Swagger: UC 3.2 skill extraction results (confidence + evidence)}
+  {images/pr2_db_skill_extractions.png}{MongoDB Compass: skill\_extractions collection document}
+  {UC 3.2 Evidence}
+
+\MultiImagePageTwo{2}
+  {images/pr2_skill_gaps.png}{Swagger: UC 2.4 skill gap analysis results}
+  {images/pr2_db_evidence.png}{MongoDB Compass: evidence collection used for gap analysis}
+  {UC 2.4 Evidence}
+
+\ImagePage{2}{images/pr2_usecase_diagram_highlighted.png}{Use Case Diagram Highlighting Implemented Use Cases (UC 3.1, UC 3.2, UC 2.4)}
+
+\subsection*{Week 2 -- Database Queries Used (MongoDB Equivalent to SQL)}
+\addcontentsline{toc}{subsection}{Week 2 -- Database Queries Used (MongoDB Equivalent to SQL)}
+
+\noindent
+\textbf{UC 3.1 -- Resume Ingestion}
+\begin{verbatim}
+db.resume_snapshots.insertOne({
+  user_id: "student1",
+  raw_text: "<resume_text>",
+  image_ref: "/images/resume_icon.png",
+  created_at: new Date()
+})
+\end{verbatim}
+
+\noindent
+\textbf{UC 3.2 -- Skill Extraction}
+\begin{verbatim}
+db.resume_snapshots.findOne({ _id: ObjectId("<snapshot_id>") })
+
+db.skills.find({}, { name: 1, aliases: 1 }).limit(10000)
+
+db.skill_extractions.insertOne({
+  resume_snapshot_id: ObjectId("<snapshot_id>"),
+  skills: [ { skill_id: "...", confidence: 0.9 } ],
+  created_at: new Date()
+})
+\end{verbatim}
+
+\noindent
+\textbf{UC 2.4 -- Skill Gap Analysis}
+\begin{verbatim}
+db.skills.aggregate([
+  { $lookup: {
+      from: "evidence",
+      localField: "_id",
+      foreignField: "skill_ids",
+      as: "evidence_docs"
+  }},
+  { $addFields: { evidence_count: { $size: "$evidence_docs" } }},
+  { $match: { evidence_count: { $lte: 0 } }},
+  { $project: { name: 1, category: 1, evidence_count: 1 }},
+  { $sort: { evidence_count: 1, name: 1 }},
+  { $limit: 200 }
+])
+\end{verbatim}
+
+\subsection*{Week 2 -- Video Demonstration}
+\addcontentsline{toc}{subsection}{Week 2 -- Video Demonstration}
+\noindent
+Video link: \href{https://drive.google.com/file/d/1VNMVQtzIe4HL9UoQhuhnphgiitfG7b9m/view?usp=drive_link}{https://drive.google.com/file/d/1VNMVQtzIe4HL9UoQhuhnphgiitfG7b9m/view?usp=drive_link}
+
+
+\WeekReport{1}{(Feb 8th)}{
+Week 1 established the project foundation by initializing the GitHub repository, setting up a local MongoDB database using Docker, and implementing a FastAPI backend skeleton. Realistic sample datasets were collected and inserted into core collections to support early UI development and validate planned display scenarios. The team aligned on primary use cases and defined how resumes, papers, and job listings will be represented as evidence-backed skills within the system.
+}{
+Justin Elia & (dataset collection tasks) & (sources, notes) \\
+Spencer Roeren & (UI mockups / wireframes) & (Images Below) \\
+Cordell Stonecipher & GitHub repo + MongoDB (Docker) + FastAPI API + seed datasets & ( repo link, endpoints, seed script) \\
+}
+
+% =========================================================
 % WEEK 1 (PR1-Specific Content)
 % Requirements:
 % - Brief description of collected data
@@ -172,14 +352,6 @@
 % - Screenshots or digital UI mockups for planned use cases
 % - Short explanation of how the data will be displayed in the UI
 % =========================================================
-\WeekReport{1}{(Fill: dates)}{
-Week 1 established the project foundation by initializing the GitHub repository, setting up a local MongoDB database using Docker, and implementing a FastAPI backend skeleton. Realistic sample datasets were collected and inserted into core collections to support early UI development and validate planned display scenarios. The team aligned on primary use cases and defined how resumes, papers, and job listings will be represented as evidence-backed skills within the system.
-}{
-Justin Elia & (Fill: dataset collection tasks) & (Fill: sources, notes) \\
-Jennifer Gonzalez & (Fill: dataset collection tasks) & (Fill: sources, notes) \\
-Spencer Roeren & (Fill: UI mockups / wireframes) & (Fill: Figma link, images) \\
-Cordell Stonecipher & GitHub repo + MongoDB (Docker) + FastAPI API + seed datasets & (Fill: repo link, endpoints, seed script) \\
-}
 
 \subsection*{Week 1 -- Collected Data (Brief Description)}
 \addcontentsline{toc}{subsection}{Week 1 -- Collected Data (Brief Description)}
@@ -200,6 +372,71 @@ The UI will display data using the backend API endpoints:
   \item \textbf{Evidence Page:} Shows a user’s uploaded/linked artifacts (resume, paper, project) with excerpt previews and extracted or assigned skill tags.
   \item \textbf{Job Browser Page:} Lists job postings with required skills. Selecting a job shows required skills and a summarized description excerpt.
   \item \textbf{Match Results Page:} Presents a match score and highlights matched skills, missing skills (gaps), and the specific evidence items supporting each matched skill.
+\end{itemize}
+
+\subsection*{Week 1 -- UI Displays}
+
+\begin{figure}[htbp]
+    \centering
+    % --- FIRST ROW ---
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (image) at (0,0) {\includegraphics[width=\linewidth]{images/Dashboard.png}};
+            \begin{scope}[x={(image.south east)},y={(image.north west)}]
+                \node [anchor=south east, fill=black, fill opacity=0.5, text=white, font=\sffamily\tiny, inner sep=2pt, rounded corners=1pt] at (0.98, 0.05) {Dashboard View};
+            \end{scope}
+        \end{tikzpicture}
+        \caption{Dashboard}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (image) at (0,0) {\includegraphics[width=\linewidth]{images/Skills.png}};
+            \begin{scope}[x={(image.south east)},y={(image.north west)}]
+                \node [anchor=south east, fill=black, fill opacity=0.5, text=white, font=\sffamily\tiny, inner sep=2pt, rounded corners=1pt] at (0.98, 0.05) {Skills View};
+            \end{scope}
+        \end{tikzpicture}
+        \caption{Skills}
+    \end{subfigure}
+
+    \vspace{1em} % Space between rows
+
+    % --- SECOND ROW ---
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (image) at (0,0) {\includegraphics[width=\linewidth]{images/Evidence.png}};
+            \begin{scope}[x={(image.south east)},y={(image.north west)}]
+                \node [anchor=south east, fill=black, fill opacity=0.5, text=white, font=\sffamily\tiny, inner sep=2pt, rounded corners=1pt] at (0.98, 0.05) {Evidence View};
+            \end{scope}
+        \end{tikzpicture}
+        \caption{Evidence}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (image) at (0,0) {\includegraphics[width=\linewidth]{images/Job Browser.png}};
+            \begin{scope}[x={(image.south east)},y={(image.north west)}]
+                \node [anchor=south east, fill=black, fill opacity=0.5, text=white, font=\sffamily\tiny, inner sep=2pt, rounded corners=1pt] at (0.98, 0.05) {Job Browser View};
+            \end{scope}
+        \end{tikzpicture}
+        \caption{Job Browser}
+    \end{subfigure}
+
+    \caption{Overview of the SkillBridge Platform interface modules.}
+    \label{fig:skillbridge_ui}
+\end{figure}
+
+\subsection*{Week 1 -- How the UI Displays Data} 
+
+\begin{itemize}
+    \item \textbf{Dashboard, The Overview:} The Dashboard acts as a command center, using individual summary widgets to display diverse data types: Key Metrics: Large-font text (e.g., "12/15 Skills") highlights critical progress. Lists: Simple bulleted lists display "Top Skills" and "Recommended Actions." Data Tables: The "Latest Job Analyses" section uses a traditional row-based table to compare specific data points like company names and match percentages.
+    \item \textbf{Skill Catalog, Categorized Grids:} The "Skills" page presents information in a responsive grid of cards. Each card is standardized with: Category Tags: Colored labels (e.g., "Data Science") to define the skill's domain. Metadata Aliases: Smaller tags at the bottom of the card showing related search terms or versions (like "py" or "python3").
+    \item \textbf{Evidence, Sequential Grids:} The Evidence section displays data as a vertical list of itemized cards. This allows for more detailed descriptions of specific files: Type Labels: Color-coded badges (Resume, Paper, Project) quickly identify the source of the data. Extracted Tags: Horizontal pill tags visualize the specific skills the system has pulled from each uploaded artifact.
+    \item \textbf{Job Browser, Master-Detail Pattern:} The "Jobs" interface uses a split-pane layout common in productivity apps: Master List (Left): Concise preview cards showing the job title, company, and location. Detail View (Right): A larger space that expands when a card is selected, providing deeper data like specific skill requirements and an "Analyze Match" call-to-action.
 \end{itemize}
 
 % -------------------------
@@ -223,89 +460,5 @@ The UI will display data using the backend API endpoints:
 %                      {images/week1_ui_jobs.png}{UI Mockup: Job Browser}
 %                      {images/week1_ui_match.png}{UI Mockup: Match Results}
 %                      {UI Mockups (Planned Use Cases)}
-
-% =========================================================
-% WEEK 2
-% =========================================================
-\WeekReport{2}{(Fill: dates)}{
-(Overall summary for Week 2.)
-}{
-Justin Elia & (Fill) & (Fill) \\
-Jennifer Gonzalez & (Fill) & (Fill) \\
-Spencer Roeren & (Fill) & (Fill) \\
-Cordell Stonecipher & (Fill) & (Fill) \\
-}
-
-% =========================================================
-% WEEK 3
-% =========================================================
-\WeekReport{3}{(Fill: dates)}{
-(Overall summary for Week 3.)
-}{
-Justin Elia & (Fill) & (Fill) \\
-Jennifer Gonzalez & (Fill) & (Fill) \\
-Spencer Roeren & (Fill) & (Fill) \\
-Cordell Stonecipher & (Fill) & (Fill) \\
-}
-
-% =========================================================
-% WEEK 4
-% =========================================================
-\WeekReport{4}{(Fill: dates)}{
-(Overall summary for Week 4.)
-}{
-Justin Elia & (Fill) & (Fill) \\
-Jennifer Gonzalez & (Fill) & (Fill) \\
-Spencer Roeren & (Fill) & (Fill) \\
-Cordell Stonecipher & (Fill) & (Fill) \\
-}
-
-% =========================================================
-% WEEK 5
-% =========================================================
-\WeekReport{5}{(Fill: dates)}{
-(Overall summary for Week 5.)
-}{
-Justin Elia & (Fill) & (Fill) \\
-Jennifer Gonzalez & (Fill) & (Fill) \\
-Spencer Roeren & (Fill) & (Fill) \\
-Cordell Stonecipher & (Fill) & (Fill) \\
-}
-
-% =========================================================
-% WEEK 6
-% =========================================================
-\WeekReport{6}{(Fill: dates)}{
-(Overall summary for Week 6.)
-}{
-Justin Elia & (Fill) & (Fill) \\
-Jennifer Gonzalez & (Fill) & (Fill) \\
-Spencer Roeren & (Fill) & (Fill) \\
-Cordell Stonecipher & (Fill) & (Fill) \\
-}
-
-% =========================================================
-% WEEK 7
-% =========================================================
-\WeekReport{7}{(Fill: dates)}{
-(Overall summary for Week 7.)
-}{
-Justin Elia & (Fill) & (Fill) \\
-Jennifer Gonzalez & (Fill) & (Fill) \\
-Spencer Roeren & (Fill) & (Fill) \\
-Cordell Stonecipher & (Fill) & (Fill) \\
-}
-
-% =========================================================
-% WEEK 8
-% =========================================================
-\WeekReport{8}{(Fill: dates)}{
-(Overall summary for Week 8.)
-}{
-Justin Elia & (Fill) & (Fill) \\
-Jennifer Gonzalez & (Fill) & (Fill) \\
-Spencer Roeren & (Fill) & (Fill) \\
-Cordell Stonecipher & (Fill) & (Fill) \\
-}
 
 \end{document}
