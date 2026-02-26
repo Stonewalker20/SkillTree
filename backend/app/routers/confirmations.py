@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, HTTPException
 from app.core.db import get_db
-from app.models.confirmation import (
+from app.models.confirmations import (
     ConfirmationIn,
     ConfirmationOut,
     ConfirmedSkillEntry,
