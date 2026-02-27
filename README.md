@@ -1,123 +1,137 @@
 # SkillBridge
 
-**AI-Powered Resume Intelligence & Career Alignment Platform**
+### Career Intelligence & Resume Optimization Platform
 
 ---
-
-## Badges
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-Async%20API%20Framework-009688.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-Async%20Backend-009688.svg)
 ![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248.svg)
 ![React](https://img.shields.io/badge/Frontend-React-61DAFB.svg)
-![Vite](https://img.shields.io/badge/Bundler-Vite-646CFF.svg)
-![License](https://img.shields.io/badge/License-MIT-black.svg)
+![Docker](https://img.shields.io/badge/Containerized-Docker-2496ED.svg)
+![Architecture](https://img.shields.io/badge/Architecture-Modular%20System-informational.svg)
 ![Status](https://img.shields.io/badge/Status-Active%20Development-success.svg)
-![Architecture](https://img.shields.io/badge/Architecture-Modular%20Monolith-informational.svg)
+![License](https://img.shields.io/badge/License-MIT-black.svg)
 
 ---
 
-## Overview
+**SkillBridge** is a containerized, full-stack career intelligence system that converts unstructured resumes into structured, analyzable skill intelligence.
 
-**SkillBridge** is a full-stack web platform that transforms unstructured resumes into structured, analyzable skill intelligence.
+The platform:
 
-The system ingests resume data, extracts and normalizes skills, maps them to standardized role models, and generates explainable job-alignment analytics.
+* Extracts and normalizes skills
+* Quantifies job alignment
+* Identifies measurable skill gaps
+* Generates resume tailoring guidance
+* Maps skills to supporting portfolio evidence
 
-SkillBridge is built as a modular, database-driven architecture designed for scalability, clarity, and production readiness.
-
----
-
-## Problem
-
-Hiring workflows rely on:
-
-* Unstructured resumes
-* Inconsistent skill terminology
-* Manual comparison of job requirements
-* Limited visibility into skill gaps
-
-SkillBridge converts free-form career data into structured intelligence and produces measurable alignment insights.
+The system is designed as a modular architecture with database-backed workflows and Docker-based deployment for reproducibility.
 
 ---
 
-## User Roles
+# Why This Project Is Engineering-Grade
 
-### Candidate
+SkillBridge is:
 
-* Upload resume
-* Confirm extracted skills
-* Analyze job alignment
-* Identify skill gaps
-* Map projects to skills
+* Fully containerized using Docker
+* Backend–frontend separated
+* Database-driven (MongoDB)
+* Built with asynchronous APIs
+* Architected with subsystem isolation
+* Designed for scalable deployment
 
-### Administrator
-
-* Manage skill taxonomy
-* Define and weight job roles
-* Maintain role versions
-* Monitor analytics integrity
-
-Each role interacts with a distinct feature set and system view.
+It is structured as a production-style service rather than a prototype script.
 
 ---
 
-## System Architecture
+# System Architecture
 
-SkillBridge is organized into five production-level subsystems.
+SkillBridge is composed of six modular subsystems:
 
----
+1. Resume Ingestion & Snapshot Engine
+2. Skill Confirmation & Normalization
+3. Job Role Library & Weighted Modeling
+4. Match & Gap Analytics
+5. Tailor Engine (Resume Optimization)
+6. Portfolio Intelligence & Evidence Mapping
 
-### 1. Resume Ingestion & Snapshot Management
-
-* Upload resume
-* Parse and extract content
-* Create structured snapshot
-* Version resume history
-* Compare snapshots
-
----
-
-### 2. Skill Extraction & Confirmation Engine
-
-* Display detected skills
-* Confirm / reject skills
-* Normalize aliases
-* Add missing skills
-* Categorize competencies
+Each subsystem interacts with MongoDB through structured models and version-controlled data flows.
 
 ---
 
-### 3. Job Role Library & Weight Modeling
+# Containerized Deployment
 
-* Create job roles
-* Define required skills
-* Assign weighted importance
-* Version role definitions
-* Archive deprecated roles
+SkillBridge runs in Docker containers for consistent development and deployment environments.
+
+## Services
+
+* `backend` — FastAPI service
+* `frontend` — React + Vite client
+* `mongo` — MongoDB database
+
+## Example Docker Compose Architecture
+
+```
+Client (Browser)
+        ↓
+Frontend Container (React + Vite)
+        ↓
+Backend Container (FastAPI)
+        ↓
+MongoDB Container
+```
+
+## Benefits of Containerization
+
+* Environment reproducibility
+* Isolated dependency management
+* Simplified onboarding
+* Production-ready deployment path
+* Scalable service orchestration
 
 ---
 
-### 4. Job Match & Gap Analytics
+# Running the System
 
-* Compute alignment score
-* Identify missing skills
-* Rank compatible roles
-* Generate explainable breakdown
-* Store match history
+## Option 1 — Docker (Recommended)
+
+```bash
+docker compose up --build
+```
+
+Backend:
+
+```
+http://localhost:8000
+```
+
+Frontend:
+
+```
+http://localhost:3000
+```
+
+MongoDB runs as an internal service.
 
 ---
 
-### 5. Portfolio Mapping & Evidence Tracking
+## Option 2 — Local Development
 
-* Create project entries
-* Map skills to artifacts
-* Assign proficiency level
-* Track growth over time
-* Generate skill-evidence reports
+Backend:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Frontend:
+
+```bash
+npm run dev
+```
 
 ---
 
-## Database Architecture
+# Data Architecture
 
 Core MongoDB collections:
 
@@ -128,76 +142,79 @@ Core MongoDB collections:
 * `job_roles`
 * `role_skill_weights`
 * `match_results`
+* `tailor_sessions`
 * `portfolio_projects`
 
-The design supports:
+The schema supports:
 
-* Snapshot versioning
+* Resume versioning
 * Skill normalization
-* Weighted scoring models
-* Historical analytics tracking
+* Weighted scoring
+* Tailoring history tracking
+* Longitudinal portfolio evolution
 
 ---
 
-## Technology Stack
+# End-to-End Workflow
+
+1. Resume upload
+2. Skill extraction
+3. Skill confirmation
+4. Role selection
+5. Match score computation
+6. Tailoring recommendation generation
+7. Portfolio evidence linkage
+
+The output is a structured alignment and optimization plan.
+
+---
+
+# Technology Stack
 
 ### Backend
 
 * Python
 * FastAPI
-* MongoDB
-* Pydantic
-* Async I/O
+* Async MongoDB
+* Pydantic validation
 
 ### Frontend
 
 * React
 * Vite
-* REST API integration
-* Responsive UI
+* REST integration
 
-### DevOps
+### Infrastructure
 
-* Git
-* Modular router architecture
-* Container-ready backend structure
-
----
-
-## Competitive Positioning
-
-SkillBridge is not a basic resume parser. It is a structured intelligence system featuring:
-
-* Weighted role modeling
-* Skill confirmation workflows
-* Resume version tracking
-* Explainable alignment scoring
-* Portfolio evidence mapping
+* Docker
+* Docker Compose
+* Modular service architecture
 
 ---
 
-## Current Development Status
+# Current Status
 
 * Resume ingestion API operational
-* MongoDB schema implemented
-* Skill confirmation flow active
-* Role modeling subsystem deployed
-* Weighted match scoring integrated
-* Frontend integration in progress
+* Skill confirmation workflow active
+* Role modeling implemented
+* Match scoring integrated
+* Tailor engine functional
+* Portfolio subsystem integrated
+* Docker-based deployment configured
 
 ---
 
-## Roadmap
+# Roadmap
 
-* Semantic skill expansion via NLP
-* Role similarity clustering
-* Visual analytics dashboards
-* API documentation portal
-* Production deployment pipeline
+* Semantic similarity scoring
+* Role clustering models
+* Analytics dashboards
+* Automated resume rewriting
+* Cloud deployment configuration
 
 ---
 
-## Repository Structure
+# Repository Structure
 
 ```
 backend/
@@ -207,20 +224,22 @@ backend/
     core/
     utils/
   main.py
+  Dockerfile
 
 frontend/
   src/
-    components/
-    pages/
+  Dockerfile
+
+docker-compose.yml
 ```
 
 ---
 
-## Contributors
+# Contributors
 
 **Cordell Stonecipher**
 Machine Learning Engineer
-System Architecture, Backend Development, Data Modeling, Analytics Engine
+System Architecture · Backend Engineering · Data Modeling · Analytics Design · Containerization
 
 **Spencer Roeren**
-Frontend Development & UI Integration Support
+Frontend Engineering Support · UI Integration
