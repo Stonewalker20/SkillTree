@@ -22,7 +22,7 @@ def pretty(obj):
 def parse_args():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base-url", default="http://localhost:8000")
-    ap.add_argument("--user-id", default="student1")
+    ap.add_argument("--user-id", default="Jack Stone")
     return ap.parse_args()
 
 

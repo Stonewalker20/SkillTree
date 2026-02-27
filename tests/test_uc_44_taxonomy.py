@@ -12,7 +12,7 @@ Pass criteria:
 """
 
 import requests
-from tests._common import parse_args, assert_status, get_json, ok, pretty, die
+from _common import parse_args, assert_status, get_json, ok, pretty, die
 
 
 def main():

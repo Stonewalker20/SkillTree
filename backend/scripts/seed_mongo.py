@@ -13,7 +13,7 @@ Seeds:
 - skill_relations (taxonomy)
 
 Usage:
-  python seed_mongo.py --mongo-uri "mongodb://localhost:27017" --db skillbridge --drop
+python seed_mongo.py --mongo-uri "mongodb://localhost:27017" --db skillbridge --drop
 
 Requires:
   pip install pymongo bson

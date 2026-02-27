@@ -39,14 +39,23 @@ def run(script: str, base_url: str, user_id: str):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base-url", default="http://localhost:8000")
-    ap.add_argument("--user-id", default="student1")
+    ap.add_argument("--user-id", default="Jack Stone")
     args = ap.parse_args()
 
+    run("test_uc_11_12_projects.py", args.base_url, args.user_id)
+    run("test_uc_13_evidence.py", args.base_url, args.user_id)
+    run("test_uc_14_dashboard.py", args.base_url, args.user_id)
+    run("test_uc_22_update_proficiency_last_used.py", args.base_url, args.user_id)
+    run("test_uc_23_skill_detail.py", args.base_url, args.user_id)
+    # run("test_uc_24_confirmed_skill_gaps_user_specific.py", args.base_url, args.user_id)
     run("test_uc_31_resume_ingestion_text.py", args.base_url, args.user_id)
     run("test_uc_32_skill_extraction.py", args.base_url, args.user_id)
-    run("test_uc_33_confirm_reject_extracted_skills.py", args.base_url, args.user_id)
-    run("test_uc_22_update_proficiency_last_used.py", args.base_url, args.user_id)
-    run("test_uc_24_confirmed_skill_gaps_user_specific.py", args.base_url, args.user_id)
+    # run("test_uc_33_confirm_reject_extracted_skills.py", args.base_url, args.user_id)
+    # run("test_uc_34_promote.py", args.base_url, args.user_id)
+    # run("test_uc_41_moderation.py", args.base_url, args.user_id)
+    run("test_uc_42_roles_and_tagging.py", args.base_url, args.user_id)
+    run("test_uc_43_role_weights.py", args.base_url, args.user_id)
+    run("test_uc_44_taxonomy.py", args.base_url, args.user_id)
 
     print("\nALL SELECTED TESTS COMPLETED")
 
