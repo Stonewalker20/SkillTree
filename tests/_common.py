@@ -29,6 +29,7 @@ def parse_args():
 def assert_status(resp: requests.Response, code: int):
     if resp.status_code != code:
         print("Response status:", resp.status_code)
+        print("Response headers:", resp.headers)
         print("Response body:", resp.text)
         die(f"Expected status {code}")
 
