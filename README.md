@@ -1,145 +1,226 @@
-# Skillbridge
+# SkillBridge
 
-**SkillBridge** is a web application designed to organize, validate, and match technical skills using real supporting evidence such as resumes, research papers, projects, and job listings. Instead of relying on shallow keyword matching, SkillTree models skills as structured entities backed by concrete artifacts, enabling more transparent and explainable skill–job alignment.
-
-This repository contains the **backend services, database schema, and development data** that power the application.
+**AI-Powered Resume Intelligence & Career Alignment Platform**
 
 ---
 
-## Motivation
+## Badges
 
-Traditional skill-matching systems treat resumes and job postings as unstructured text, often leading to poor matches and opaque scoring. SkillTree addresses this by:
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-Async%20API%20Framework-009688.svg)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248.svg)
+![React](https://img.shields.io/badge/Frontend-React-61DAFB.svg)
+![Vite](https://img.shields.io/badge/Bundler-Vite-646CFF.svg)
+![License](https://img.shields.io/badge/License-MIT-black.svg)
+![Status](https://img.shields.io/badge/Status-Active%20Development-success.svg)
+![Architecture](https://img.shields.io/badge/Architecture-Modular%20Monolith-informational.svg)
 
-* Normalizing skills into a shared taxonomy
-* Linking each skill to verifiable evidence
-* Storing job requirements in a structured, queryable form
-* Producing interpretable match results that highlight strengths and gaps
+---
 
-The result is a system that is easier to audit, extend, and reason about.
+## Overview
+
+**SkillBridge** is a full-stack web platform that transforms unstructured resumes into structured, analyzable skill intelligence.
+
+The system ingests resume data, extracts and normalizes skills, maps them to standardized role models, and generates explainable job-alignment analytics.
+
+SkillBridge is built as a modular, database-driven architecture designed for scalability, clarity, and production readiness.
+
+---
+
+## Problem
+
+Hiring workflows rely on:
+
+* Unstructured resumes
+* Inconsistent skill terminology
+* Manual comparison of job requirements
+* Limited visibility into skill gaps
+
+SkillBridge converts free-form career data into structured intelligence and produces measurable alignment insights.
+
+---
+
+## User Roles
+
+### Candidate
+
+* Upload resume
+* Confirm extracted skills
+* Analyze job alignment
+* Identify skill gaps
+* Map projects to skills
+
+### Administrator
+
+* Manage skill taxonomy
+* Define and weight job roles
+* Maintain role versions
+* Monitor analytics integrity
+
+Each role interacts with a distinct feature set and system view.
+
+---
+
+## System Architecture
+
+SkillBridge is organized into five production-level subsystems.
+
+---
+
+### 1. Resume Ingestion & Snapshot Management
+
+* Upload resume
+* Parse and extract content
+* Create structured snapshot
+* Version resume history
+* Compare snapshots
+
+---
+
+### 2. Skill Extraction & Confirmation Engine
+
+* Display detected skills
+* Confirm / reject skills
+* Normalize aliases
+* Add missing skills
+* Categorize competencies
+
+---
+
+### 3. Job Role Library & Weight Modeling
+
+* Create job roles
+* Define required skills
+* Assign weighted importance
+* Version role definitions
+* Archive deprecated roles
+
+---
+
+### 4. Job Match & Gap Analytics
+
+* Compute alignment score
+* Identify missing skills
+* Rank compatible roles
+* Generate explainable breakdown
+* Store match history
+
+---
+
+### 5. Portfolio Mapping & Evidence Tracking
+
+* Create project entries
+* Map skills to artifacts
+* Assign proficiency level
+* Track growth over time
+* Generate skill-evidence reports
+
+---
+
+## Database Architecture
+
+Core MongoDB collections:
+
+* `users`
+* `resume_snapshots`
+* `skills`
+* `confirmed_skills`
+* `job_roles`
+* `role_skill_weights`
+* `match_results`
+* `portfolio_projects`
+
+The design supports:
+
+* Snapshot versioning
+* Skill normalization
+* Weighted scoring models
+* Historical analytics tracking
 
 ---
 
 ## Technology Stack
 
-**Backend**
+### Backend
 
-* FastAPI (Python)
-* Async MongoDB access via Motor
+* Python
+* FastAPI
+* MongoDB
+* Pydantic
+* Async I/O
 
-**Database**
+### Frontend
 
-* MongoDB (NoSQL)
-* Docker Compose for local development
+* React
+* Vite
+* REST API integration
+* Responsive UI
 
-**Tooling**
+### DevOps
 
-* Docker
-* Python 3.10+
-* JSON-based seed datasets
-
----
-
-## System Overview
-
-At a high level, SkillBridge consists of:
-
-* A FastAPI backend exposing REST endpoints
-* A MongoDB database storing skills, evidence, and matches
-* A frontend (developed separately) that consumes the API
-
-This repository focuses on the **backend and data layer**.
+* Git
+* Modular router architecture
+* Container-ready backend structure
 
 ---
 
-## Database Design
+## Competitive Positioning
 
-Core collections:
+SkillBridge is not a basic resume parser. It is a structured intelligence system featuring:
 
-* **users** – application users (students, admins)
-* **skills** – canonical skill definitions and aliases
-* **evidence** – resumes, papers, projects, certifications
-* **jobs** – job listings with required skills
-* **matches** – computed user–job alignment results
+* Weighted role modeling
+* Skill confirmation workflows
+* Resume version tracking
+* Explainable alignment scoring
+* Portfolio evidence mapping
 
-All collections include realistic sample data to support development and testing.
+---
+
+## Current Development Status
+
+* Resume ingestion API operational
+* MongoDB schema implemented
+* Skill confirmation flow active
+* Role modeling subsystem deployed
+* Weighted match scoring integrated
+* Frontend integration in progress
+
+---
+
+## Roadmap
+
+* Semantic skill expansion via NLP
+* Role similarity clustering
+* Visual analytics dashboards
+* API documentation portal
+* Production deployment pipeline
 
 ---
 
 ## Repository Structure
 
 ```
-skillbridge/
-  backend/        # FastAPI application
-  data/seed/      # Sample MongoDB seed data
-  infra/          # Docker Compose configuration
-  docs/           # Technical documentation
+backend/
+  app/
+    routers/
+    models/
+    core/
+    utils/
+  main.py
+
+frontend/
+  src/
+    components/
+    pages/
 ```
 
 ---
 
-## Running the Project Locally
+## Contributors
 
-### 1. Start MongoDB
+**Cordell Stonecipher**
+Machine Learning Engineer
+System Architecture, Backend Development, Data Modeling, Analytics Engine
 
-```bash
-cd infra
-docker compose up -d
-```
-
-### 2. Install backend dependencies
-
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### 3. Seed the database
-
-```bash
-python scripts/seed_mongo.py
-```
-
-### 4. Run the API server
-
-```bash
-uvicorn app.main:app --reload
-```
-
-### 5. Health check
-
-Navigate to:
-
-```
-http://localhost:8000/health
-```
-
----
-
-## Development Status
-
-This project is under active development.
-
-Current focus:
-
-* Backend infrastructure
-* Database modeling
-* Data ingestion and normalization
-* API support for frontend development
-
-Advanced matching logic, authentication, and deployment are planned for later phases.
-
----
-
-## Team
-
-* **Backend & Database:** Cordell Stonecipher
-* **Frontend/UI:** Spencer Roeren
-* **Data Collection & Curation:** Justin Elia, Jennifer Gonzalelz
-
----
-
-## License
-
-MIT License
-
----
+**Spencer Roeren**
+Frontend Development & UI Integration Support
