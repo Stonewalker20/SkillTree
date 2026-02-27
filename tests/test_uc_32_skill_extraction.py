@@ -16,7 +16,7 @@ Notes:
 """
 
 import requests
-from tests._common import parse_args, assert_status, get_json, ok, pretty, die
+from _common import parse_args, assert_status, get_json, ok, pretty, die
 
 
 def ensure_skill(base: str, name: str, category: str, aliases=None):
