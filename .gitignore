@@ -24,10 +24,12 @@ venv/
 
 # Logs
 *.log
-progressReports.tex
 
 # Docker
 **/.docker/
 
 # Front End
 frontend/node_modules
+
+# Misc
+skillbridge_pr3_usecase.xml
