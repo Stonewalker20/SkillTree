@@ -9,7 +9,7 @@ from app.core.auth import hash_password, verify_password, create_session, requir
 from app.models.auth import RegisterIn, LoginIn, AuthOut, UserOut, UserPatch
 from app.utils.mongo import oid_str
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter()
 
 SESSION_HOURS = 24
 
@@ -127,12 +127,12 @@ async def delete_me(user=Depends(require_user)):
     await db["sessions"].delete_many({"user_id": uid})
 
     # 2) optional: remove user-owned content (adjust collections to your schema)
-    await db["skills"].delete_many({"user_id": str(uid)})            # if skills store user_id as string
-    await db["evidence"].delete_many({"user_id": str(uid)})          # if evidence store user_id as string
-    await db["portfolio_items"].delete_many({"user_id": str(uid)})   # if portfolio_items store user_id as string
-    await db["job_ingests"].delete_many({"user_id": str(uid)})       # your tailor ingest uses user_id string
-    await db["tailored_resumes"].delete_many({"user_id": str(uid)})  # your tailor preview stores user_id string
-    await db["projects"].delete_many({"user_id": str(uid)})          # if used
+    # await db["skills"].delete_many({"user_id": str(uid)})            # if skills store user_id as string
+    # await db["evidence"].delete_many({"user_id": str(uid)})          # if evidence store user_id as string
+    # await db["portfolio_items"].delete_many({"user_id": str(uid)})   # if portfolio_items store user_id as string
+    # await db["job_ingests"].delete_many({"user_id": str(uid)})       # your tailor ingest uses user_id string
+    # await db["tailored_resumes"].delete_many({"user_id": str(uid)})  # your tailor preview stores user_id string
+    # await db["projects"].delete_many({"user_id": str(uid)})          # if used
 
     # 3) delete the user itself
     res = await db["users"].delete_one({"_id": uid})

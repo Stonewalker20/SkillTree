@@ -20,7 +20,7 @@ from app.models.tailor import (
 )
 from app.utils.mongo import oid_str
 
-router = APIRouter(prefix="/tailor", tags=["tailor"])
+router = APIRouter()
 
 def now_utc():
     return datetime.now(timezone.utc)
@@ -161,31 +161,42 @@ async def match_job(payload: dict):
     Expects:
     {
         "user_id": "...",
-        "job_id": "..."
+        "job_id": "..."   # this is the JobIngestOut.id from /tailor/job/ingest
     }
     """
-
     db = get_db()
 
-    job = await db["jobs"].find_one({"_id": ObjectId(payload["job_id"])})
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    try:
+        job_oid = ObjectId(payload["job_id"])
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid job_id")
 
-    user_skills = await db["skills"].find({"user_id": payload["user_id"]}).to_list(500)
+    job_doc = await db["job_ingests"].find_one({"_id": job_oid, "user_id": payload["user_id"]})
+    if not job_doc:
+        raise HTTPException(status_code=404, detail="Job ingest not found for user_id")
 
-    job_text = job.get("text", "").lower()
-    matched = []
-    for skill in user_skills:
-        if skill["name"].lower() in job_text:
-            matched.append(skill["name"])
+    extracted = job_doc.get("extracted_skills") or []
+    extracted_skill_ids = {str(e.get("skill_id")) for e in extracted if e.get("skill_id")}
 
-    score = 0
-    if user_skills:
-        score = round((len(matched) / len(user_skills)) * 100, 2)
+    # If you store user-specific skills, filter by user_id. If skills are global catalog, remove user_id filter.
+    user_skills = await db["skills"].find({"user_id": payload["user_id"]}, {"_id": 1, "name": 1}).to_list(5000)
+    user_skill_ids = {str(s["_id"]) for s in user_skills}
+
+    matched_ids = list(extracted_skill_ids & user_skill_ids)
+    matched_names = []
+    if matched_ids:
+        # map names for convenience
+        name_by_id = {str(s["_id"]): s.get("name", "") for s in user_skills}
+        matched_names = [name_by_id.get(mid, mid) for mid in matched_ids if name_by_id.get(mid, mid)]
+
+    score = 0.0
+    if user_skill_ids:
+        score = round((len(matched_ids) / len(user_skill_ids)) * 100.0, 2)
 
     return {
         "match_score": score,
-        "matched_skills": matched
+        "matched_skill_ids": matched_ids,
+        "matched_skills": matched_names,
     }
 
 @router.post("/preview", response_model=TailoredResumeOut)

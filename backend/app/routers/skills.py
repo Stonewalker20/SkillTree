@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 from typing import Optional
 
-router = APIRouter(prefix="/skills", tags=["skills"])
+router = APIRouter()
 
 @router.get("/", response_model=list[SkillOut])
 async def list_skills(
