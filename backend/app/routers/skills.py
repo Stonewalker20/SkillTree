@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 from typing import Optional
 
-router = APIRouter()
+router = APIRouter(prefix="/skills", tags=["skills"])
 
 @router.get("/", response_model=list[SkillOut])
 async def list_skills(
@@ -67,6 +67,19 @@ async def create_skill(payload: SkillIn):
     res = await db["skills"].insert_one(doc)
     return {"id": oid_str(res.inserted_id), **doc}
 
+@router.delete("/{skill_id}")
+async def delete_skill(skill_id: str):
+    db = get_db()
+    try:
+        oid = ObjectId(skill_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid skill_id")
+
+    result = await db["skills"].delete_one({"_id": oid})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Skill not found")
+
+    return {"ok": True}
 
 class SkillPatch(BaseModel):
     proficiency: Optional[int] = None
