@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.core.db import connect_to_mongo, close_mongo_connection
+from app.core.db import connect_to_mongo, close_mongo_connection, get_db
 from app.routers.health import router as health_router
 from app.routers.skills import router as skills_router
 from app.routers.confirmations import router as confirmations_router
@@ -12,7 +12,15 @@ from app.routers.roles import router as roles_router
 from app.routers.taxonomy import router as taxonomy_router
 from app.routers.tailor import router as tailor_router
 from app.routers.portfolio import router as portfolio_router
+from app.routers.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
+
+async def ensure_indexes():
+    db = get_db()
+    await db["users"].create_index("email", unique=True)
+    await db["sessions"].create_index("token", unique=True)
+    await db["sessions"].create_index("expires_at", expireAfterSeconds=0)
 
 app = FastAPI(title="SkillBridge API", version="0.3.0")
 
@@ -30,6 +38,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_startup():
     await connect_to_mongo()
+    await ensure_indexes()
 
 @app.on_event("shutdown")
 async def on_shutdown():
@@ -47,3 +56,4 @@ app.include_router(roles_router, prefix="/roles", tags=["roles"])
 app.include_router(taxonomy_router, prefix="/taxonomy", tags=["taxonomy"])
 app.include_router(tailor_router, prefix="/tailor", tags=["tailor"])
 app.include_router(portfolio_router, prefix="/portfolio", tags=["portfolio"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
