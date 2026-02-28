@@ -20,7 +20,7 @@ from app.models.tailor import (
 )
 from app.utils.mongo import oid_str
 
-router = APIRouter()
+router = APIRouter(prefix="/tailor", tags=["tailor"])
 
 def now_utc():
     return datetime.now(timezone.utc)
@@ -154,6 +154,39 @@ async def ingest_job(payload: JobIngestIn):
         keywords=keywords,
         created_at=now,
     )
+
+@router.post("/match")
+async def match_job(payload: dict):
+    """
+    Expects:
+    {
+        "user_id": "...",
+        "job_id": "..."
+    }
+    """
+
+    db = get_db()
+
+    job = await db["jobs"].find_one({"_id": ObjectId(payload["job_id"])})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    user_skills = await db["skills"].find({"user_id": payload["user_id"]}).to_list(500)
+
+    job_text = job.get("text", "").lower()
+    matched = []
+    for skill in user_skills:
+        if skill["name"].lower() in job_text:
+            matched.append(skill["name"])
+
+    score = 0
+    if user_skills:
+        score = round((len(matched) / len(user_skills)) * 100, 2)
+
+    return {
+        "match_score": score,
+        "matched_skills": matched
+    }
 
 @router.post("/preview", response_model=TailoredResumeOut)
 async def preview_tailored_resume(payload: TailorPreviewIn):
