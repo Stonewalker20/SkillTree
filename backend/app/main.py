@@ -10,9 +10,11 @@ from app.routers.projects import router as projects_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.roles import router as roles_router
 from app.routers.taxonomy import router as taxonomy_router
+from app.routers.tailor import router as tailor_router
+from app.routers.portfolio import router as portfolio_router
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="SkillBridge API", version="0.2.0")
+app = FastAPI(title="SkillBridge API", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,3 +45,5 @@ app.include_router(projects_router, prefix="/projects", tags=["projects"])
 app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(roles_router, prefix="/roles", tags=["roles"])
 app.include_router(taxonomy_router, prefix="/taxonomy", tags=["taxonomy"])
+app.include_router(tailor_router, prefix="/tailor", tags=["tailor"])
+app.include_router(portfolio_router, prefix="/portfolio", tags=["portfolio"])

@@ -1,145 +1,245 @@
-# Skillbridge
+# SkillBridge
 
-**SkillBridge** is a web application designed to organize, validate, and match technical skills using real supporting evidence such as resumes, research papers, projects, and job listings. Instead of relying on shallow keyword matching, SkillTree models skills as structured entities backed by concrete artifacts, enabling more transparent and explainable skill–job alignment.
-
-This repository contains the **backend services, database schema, and development data** that power the application.
+### Career Intelligence & Resume Optimization Platform
 
 ---
 
-## Motivation
-
-Traditional skill-matching systems treat resumes and job postings as unstructured text, often leading to poor matches and opaque scoring. SkillTree addresses this by:
-
-* Normalizing skills into a shared taxonomy
-* Linking each skill to verifiable evidence
-* Storing job requirements in a structured, queryable form
-* Producing interpretable match results that highlight strengths and gaps
-
-The result is a system that is easier to audit, extend, and reason about.
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-Async%20Backend-009688.svg)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248.svg)
+![React](https://img.shields.io/badge/Frontend-React-61DAFB.svg)
+![Docker](https://img.shields.io/badge/Containerized-Docker-2496ED.svg)
+![Architecture](https://img.shields.io/badge/Architecture-Modular%20System-informational.svg)
+![Status](https://img.shields.io/badge/Status-Active%20Development-success.svg)
+![License](https://img.shields.io/badge/License-MIT-black.svg)
 
 ---
 
-## Technology Stack
+**SkillBridge** is a containerized, full-stack career intelligence system that converts unstructured resumes into structured, analyzable skill intelligence.
 
-**Backend**
+The platform:
 
-* FastAPI (Python)
-* Async MongoDB access via Motor
+* Extracts and normalizes skills
+* Quantifies job alignment
+* Identifies measurable skill gaps
+* Generates resume tailoring guidance
+* Maps skills to supporting portfolio evidence
 
-**Database**
-
-* MongoDB (NoSQL)
-* Docker Compose for local development
-
-**Tooling**
-
-* Docker
-* Python 3.10+
-* JSON-based seed datasets
+The system is designed as a modular architecture with database-backed workflows and Docker-based deployment for reproducibility.
 
 ---
 
-## System Overview
+# Why This Project Is Engineering-Grade
 
-At a high level, SkillBridge consists of:
+SkillBridge is:
 
-* A FastAPI backend exposing REST endpoints
-* A MongoDB database storing skills, evidence, and matches
-* A frontend (developed separately) that consumes the API
+* Fully containerized using Docker
+* Backend–frontend separated
+* Database-driven (MongoDB)
+* Built with asynchronous APIs
+* Architected with subsystem isolation
+* Designed for scalable deployment
 
-This repository focuses on the **backend and data layer**.
-
----
-
-## Database Design
-
-Core collections:
-
-* **users** – application users (students, admins)
-* **skills** – canonical skill definitions and aliases
-* **evidence** – resumes, papers, projects, certifications
-* **jobs** – job listings with required skills
-* **matches** – computed user–job alignment results
-
-All collections include realistic sample data to support development and testing.
+It is structured as a production-style service rather than a prototype script.
 
 ---
 
-## Repository Structure
+# System Architecture
+
+SkillBridge is composed of six modular subsystems:
+
+1. Resume Ingestion & Snapshot Engine
+2. Skill Confirmation & Normalization
+3. Job Role Library & Weighted Modeling
+4. Match & Gap Analytics
+5. Tailor Engine (Resume Optimization)
+6. Portfolio Intelligence & Evidence Mapping
+
+Each subsystem interacts with MongoDB through structured models and version-controlled data flows.
+
+---
+
+# Containerized Deployment
+
+SkillBridge runs in Docker containers for consistent development and deployment environments.
+
+## Services
+
+* `backend` — FastAPI service
+* `frontend` — React + Vite client
+* `mongo` — MongoDB database
+
+## Example Docker Compose Architecture
 
 ```
-skillbridge/
-  backend/        # FastAPI application
-  data/seed/      # Sample MongoDB seed data
-  infra/          # Docker Compose configuration
-  docs/           # Technical documentation
+Client (Browser)
+        ↓
+Frontend Container (React + Vite)
+        ↓
+Backend Container (FastAPI)
+        ↓
+MongoDB Container
 ```
+
+## Benefits of Containerization
+
+* Environment reproducibility
+* Isolated dependency management
+* Simplified onboarding
+* Production-ready deployment path
+* Scalable service orchestration
 
 ---
 
-## Running the Project Locally
+# Running the System
 
-### 1. Start MongoDB
+## Option 1 — Docker (Recommended)
 
 ```bash
-cd infra
-docker compose up -d
+docker compose up --build
 ```
 
-### 2. Install backend dependencies
+Backend:
 
-```bash
-cd backend
-pip install -r requirements.txt
+```
+http://localhost:8000
 ```
 
-### 3. Seed the database
+Frontend:
 
-```bash
-python scripts/seed_mongo.py
+```
+http://localhost:3000
 ```
 
-### 4. Run the API server
+MongoDB runs as an internal service.
+
+---
+
+## Option 2 — Local Development
+
+Backend:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-### 5. Health check
+Frontend:
 
-Navigate to:
-
-```
-http://localhost:8000/health
+```bash
+npm run dev
 ```
 
 ---
 
-## Development Status
+# Data Architecture
 
-This project is under active development.
+Core MongoDB collections:
 
-Current focus:
+* `users`
+* `resume_snapshots`
+* `skills`
+* `confirmed_skills`
+* `job_roles`
+* `role_skill_weights`
+* `match_results`
+* `tailor_sessions`
+* `portfolio_projects`
 
-* Backend infrastructure
-* Database modeling
-* Data ingestion and normalization
-* API support for frontend development
+The schema supports:
 
-Advanced matching logic, authentication, and deployment are planned for later phases.
+* Resume versioning
+* Skill normalization
+* Weighted scoring
+* Tailoring history tracking
+* Longitudinal portfolio evolution
+
+---
+
+# End-to-End Workflow
+
+1. Resume upload
+2. Skill extraction
+3. Skill confirmation
+4. Role selection
+5. Match score computation
+6. Tailoring recommendation generation
+7. Portfolio evidence linkage
+
+The output is a structured alignment and optimization plan.
 
 ---
 
-## Team
+# Technology Stack
 
-* **Backend & Database:** Cordell Stonecipher
-* **Frontend/UI:** Spencer Roeren
-* **Data Collection & Curation:** Justin Elia, Jennifer Gonzalelz
+### Backend
+
+* Python
+* FastAPI
+* Async MongoDB
+* Pydantic validation
+
+### Frontend
+
+* React
+* Vite
+* REST integration
+
+### Infrastructure
+
+* Docker
+* Docker Compose
+* Modular service architecture
 
 ---
 
-## License
+# Current Status
 
-MIT License
+* Resume ingestion API operational
+* Skill confirmation workflow active
+* Role modeling implemented
+* Match scoring integrated
+* Tailor engine functional
+* Portfolio subsystem integrated
+* Docker-based deployment configured
 
 ---
+
+# Roadmap
+
+* Semantic similarity scoring
+* Role clustering models
+* Analytics dashboards
+* Automated resume rewriting
+* Cloud deployment configuration
+
+---
+
+# Repository Structure
+
+```
+backend/
+  app/
+    routers/
+    models/
+    core/
+    utils/
+  main.py
+  Dockerfile
+
+frontend/
+  src/
+  Dockerfile
+
+docker-compose.yml
+```
+
+---
+
+# Contributors
+
+**Cordell Stonecipher**
+Machine Learning Engineer
+System Architecture · Backend Engineering · Data Modeling · Analytics Design · Containerization
+
+**Spencer Roeren**
+Frontend Engineering Support · UI Integration
