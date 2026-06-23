@@ -217,7 +217,7 @@ async def promote_confirmed_skills(snapshot_id: str, user_id: str | None = Form(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid snapshot_id")
 
-    snap = await db["resume_snapshots"].find_one({"_id": snap_oid})
+    snap = await db["resume_snapshots"].find_one({"_id": snap_oid, "user_id": {"$in": ref_values(user_id)}})
     if not snap:
         raise HTTPException(status_code=404, detail="Resume snapshot not found")
 

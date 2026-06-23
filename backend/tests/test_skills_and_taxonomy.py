@@ -20,9 +20,8 @@ def test_skill_crud_and_taxonomy_routes(test_context):
     assert created.status_code == 200
     skill_id = created.json()["id"]
 
-    updated = client.patch(f"/skills/{skill_id}", headers=headers, json={"aliases": ["Fast APIs"], "proficiency": 4})
-    assert updated.status_code == 200
-    assert updated.json()["proficiency"] == 4
+    non_admin_update = client.patch(f"/skills/{skill_id}", headers=headers, json={"proficiency": 4})
+    assert non_admin_update.status_code == 403
 
     aliases = client.put(f"/taxonomy/aliases/{skill_id}", headers=headers, json={"aliases": ["fastapi", "fast apis"]})
     assert aliases.status_code == 200
@@ -92,6 +91,10 @@ def test_skill_crud_and_taxonomy_routes(test_context):
     assert admin_skill_list.status_code == 200
     assert any(entry["id"] == skill_id for entry in admin_skill_list.json())
 
+    updated = client.patch(f"/skills/{skill_id}", headers=headers, json={"aliases": ["Fast APIs"], "proficiency": 4})
+    assert updated.status_code == 200
+    assert updated.json()["proficiency"] == 4
+
     deleted = client.delete(f"/skills/{skill_id}", headers=headers)
     assert deleted.status_code == 200
     deleted_ml = client.delete(f"/skills/{mlops_id}", headers=headers)
@@ -123,6 +126,52 @@ def test_skill_extraction_and_gap_endpoints(test_context):
     gaps = client.get("/skills/gaps", headers=headers)
     assert gaps.status_code == 200
     assert isinstance(gaps.json(), list)
+
+
+def test_extract_skills_rejects_other_users_snapshot(test_context):
+    client = test_context["client"]
+    db = test_context["db"]
+
+    snapshot_id = db["resume_snapshots"].docs[0]["_id"] if db["resume_snapshots"].docs else None
+    if snapshot_id is None:
+        db["resume_snapshots"].docs.append(
+            {
+                "_id": ObjectId(),
+                "user_id": ObjectId(test_context["user_id"]),
+                "raw_text": "Python ML FastAPI " * 20,
+                "created_at": now_utc(),
+            }
+        )
+        snapshot_id = db["resume_snapshots"].docs[0]["_id"]
+
+    other_user_id = ObjectId()
+    seeded_user = db["users"].docs[0]
+    db["users"].docs.append(
+        {
+            "_id": other_user_id,
+            "email": "other@example.com",
+            "username": "other-user",
+            "password_salt": seeded_user["password_salt"],
+            "password_hash": seeded_user["password_hash"],
+            "role": "user",
+            "subscription_status": "active",
+            "subscription_plan": "pro",
+            "created_at": now_utc(),
+        }
+    )
+    db["sessions"].docs.append(
+        {
+            "_id": ObjectId(),
+            "user_id": other_user_id,
+            "token": "other-token",
+            "created_at": db["sessions"].docs[0]["created_at"],
+            "expires_at": db["sessions"].docs[0]["expires_at"],
+        }
+    )
+    other_headers = {"Authorization": "Bearer other-token"}
+
+    extracted = client.post(f"/skills/extract/skills/{snapshot_id}", headers=other_headers)
+    assert extracted.status_code == 404
 
 
 def test_skill_trajectory_returns_clustered_career_paths(test_context):

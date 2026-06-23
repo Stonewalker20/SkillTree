@@ -260,7 +260,7 @@ async def upsert_confirmation(payload: ConfirmationIn, user=Depends(require_user
 
     # If snapshot provided, verify it exists
     if snapshot_oid is not None:
-        snap = await db["resume_snapshots"].find_one({"_id": snapshot_oid})
+        snap = await db["resume_snapshots"].find_one({"_id": snapshot_oid, "user_id": {"$in": user_refs}})
         if not snap:
             raise HTTPException(status_code=404, detail="Resume snapshot not found")
 

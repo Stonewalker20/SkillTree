@@ -299,7 +299,7 @@ async def delete_skill(skill_id: str, _user=Depends(require_admin_user)):
     return {"ok": True}
 
 @router.patch("/{skill_id}", response_model=SkillOut)
-async def update_skill(skill_id: str, payload: SkillUpdate):
+async def update_skill(skill_id: str, payload: SkillUpdate, _user=Depends(require_admin_user)):
     db = get_db()
 
     try:
@@ -357,7 +357,7 @@ def make_snippet(text: str, needle: str, window: int = 80) -> str:
     return text[start:end].strip()
 
 @router.post("/extract/skills/{snapshot_id}")
-async def extract_skills(snapshot_id: str):
+async def extract_skills(snapshot_id: str, user=Depends(require_user)):
     db = get_db()
 
     try:
@@ -365,7 +365,7 @@ async def extract_skills(snapshot_id: str):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid snapshot_id")
 
-    snap = await db["resume_snapshots"].find_one({"_id": sid})
+    snap = await db["resume_snapshots"].find_one({"_id": sid, "user_id": {"$in": ref_values(user["_id"])}})
     if not snap:
         raise HTTPException(status_code=404, detail="Resume snapshot not found")
 
@@ -417,11 +417,6 @@ async def extract_skills(snapshot_id: str):
         "created_at": now_utc(),
     }
     await db["skill_extractions"].insert_one(doc)
-
-    #remove before release
-    print("snapshot_text_len:", len(text))
-    print("skills_loaded:", len(skills))
-
 
     return {"snapshot_id": snapshot_id, "extracted": extracted, "created_at": doc["created_at"]}
 

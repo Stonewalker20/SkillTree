@@ -5,9 +5,11 @@ from __future__ import annotations
 from datetime import timedelta
 import hashlib
 import logging
+import re
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request
 from bson import ObjectId
+from pymongo.errors import DuplicateKeyError
 import secrets
 
 from app.core.db import get_db
@@ -187,7 +189,12 @@ async def register(payload: RegisterIn, request: Request):
     )
 
     existing = await db["users"].find_one(
-        {"$or": [{"email": payload.email}, {"username": payload.username}]}
+        {
+            "$or": [
+                {"email": payload.email},
+                {"username": {"$regex": f"^{re.escape(payload.username)}$", "$options": "i"}},
+            ]
+        }
     )
     if existing:
         raise HTTPException(status_code=409, detail="User already exists")
@@ -216,7 +223,10 @@ async def register(payload: RegisterIn, request: Request):
         "created_at": now_utc(),
     }
 
-    res = await db["users"].insert_one(doc)
+    try:
+        res = await db["users"].insert_one(doc)
+    except DuplicateKeyError:
+        raise HTTPException(status_code=409, detail="User already exists")
 
     token = await create_session(res.inserted_id)
 

@@ -21,16 +21,22 @@ def _validate_new_password(value: str) -> str:
         raise ValueError(PASSWORD_POLICY_MESSAGE)
     return password
 
+def _normalize_email(value: str) -> str:
+    return str(value or "").strip().lower()
+
 class RegisterIn(BaseModel):
     email: EmailStr
     username: str = Field(min_length=2, max_length=50)
     password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
 
     _password_strength = field_validator("password")(_validate_new_password)
+    _email_normalize = field_validator("email")(_normalize_email)
 
 class LoginIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=PASSWORD_MAX_LENGTH)
+
+    _email_normalize = field_validator("email")(_normalize_email)
 
 
 class UserOnboardingOut(BaseModel):
@@ -87,6 +93,8 @@ class PasswordChangeIn(BaseModel):
 
 class PasswordResetRequestIn(BaseModel):
     email: EmailStr
+
+    _email_normalize = field_validator("email")(_normalize_email)
 
 
 class PasswordResetConfirmIn(BaseModel):
