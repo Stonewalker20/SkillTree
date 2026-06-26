@@ -62,7 +62,15 @@ def normalize_exp(exp: Any) -> Optional[datetime]:
     return None
 
 
-def _pbkdf2(password: str, salt_hex: str, iterations: int = 120_000) -> str:
+# PBKDF2-HMAC-SHA256 iteration count for newly created/changed passwords. Raised from the
+# original 120_000 per OWASP's current guidance for this algorithm. LEGACY_PBKDF2_ITERATIONS
+# is kept so verify_password() can still validate hashes that were computed before this
+# change, for accounts whose stored hash predates the "password_iterations" field below.
+PBKDF2_ITERATIONS = 600_000
+LEGACY_PBKDF2_ITERATIONS = 120_000
+
+
+def _pbkdf2(password: str, salt_hex: str, iterations: int = PBKDF2_ITERATIONS) -> str:
     dk = hashlib.pbkdf2_hmac(
         "sha256",
         password.encode("utf-8"),
@@ -74,11 +82,11 @@ def _pbkdf2(password: str, salt_hex: str, iterations: int = 120_000) -> str:
 
 def hash_password(password: str) -> Dict[str, Any]:
     salt = secrets.token_hex(16)
-    return {"salt": salt, "hash": _pbkdf2(password, salt)}
+    return {"salt": salt, "hash": _pbkdf2(password, salt), "iterations": PBKDF2_ITERATIONS}
 
 
-def verify_password(password: str, salt: str, pw_hash: str) -> bool:
-    return secrets.compare_digest(_pbkdf2(password, salt), pw_hash)
+def verify_password(password: str, salt: str, pw_hash: str, iterations: int = LEGACY_PBKDF2_ITERATIONS) -> bool:
+    return secrets.compare_digest(_pbkdf2(password, salt, iterations), pw_hash)
 
 
 def new_token() -> str:

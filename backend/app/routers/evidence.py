@@ -26,6 +26,7 @@ from app.utils.skill_catalog import (
     should_use_strict_exact_match,
 )
 from app.utils.text_safety import sanitize_user_evidence_text
+from app.utils.file_validation import sniff_pdf, sniff_docx
 from app.utils.mongo import oid_str, ref_query, ref_values, to_object_id, try_object_id
 import json
 import io
@@ -107,11 +108,17 @@ def serialize_evidence(doc: dict) -> dict:
 def extract_text_from_upload(filename: str, raw: bytes) -> str:
     lower = (filename or "").lower()
     if lower.endswith(".pdf"):
+        # The filename extension is attacker-controlled, so confirm the bytes are
+        # actually a PDF before handing them to the parser.
+        if not sniff_pdf(raw):
+            raise HTTPException(status_code=400, detail="File content does not match a valid PDF.")
         from pypdf import PdfReader
 
         reader = PdfReader(io.BytesIO(raw))
         return sanitize_user_evidence_text("\n".join((page.extract_text() or "") for page in reader.pages).strip())
     if lower.endswith(".docx"):
+        if not sniff_docx(raw):
+            raise HTTPException(status_code=400, detail="File content does not match a valid DOCX.")
         from docx import Document
 
         doc = Document(io.BytesIO(raw))
@@ -438,7 +445,7 @@ async def _semantic_catalog_match(candidate_name: str, visible_skills: list[dict
     candidate_vec = vectors[0]
     best_skill = None
     best_score = 0.0
-    for (skill, _label, lexical_score), vec in zip(shortlist, vectors[1:]):
+    for (skill, _label, lexical_score), vec in zip(shortlist, vectors[1:], strict=False):
         semantic_score = cosine_similarity(candidate_vec, vec)
         combined_score = (semantic_score * 0.72) + (lexical_score * 0.28)
         if combined_score > best_score:
@@ -960,7 +967,6 @@ async def delete_evidence(evidence_id: str, user=Depends(require_user)):
             # If a removed skill is a user-created custom skill with no remaining evidence
             # and no remaining profile confirmation, delete the orphaned skill record too.
             for sid in removable:
-                sid_str = oid_str(sid)
                 skill_doc = await db["skills"].find_one(
                     {"_id": {"$in": ref_values(sid)}},
                     {"created_by_user_id": 1},

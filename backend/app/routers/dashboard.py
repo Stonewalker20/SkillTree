@@ -206,13 +206,6 @@ async def dashboard_summary(
         for skill_id in (item.get("skill_ids") or [])
         if oid_str(skill_id)
     }
-    structured_evidence_skill_ids = {
-        oid_str(skill_id)
-        for item in evidence_items
-        if item.get("structured_evidence") is True
-        for skill_id in (item.get("skill_ids") or [])
-        if oid_str(skill_id)
-    }
     evidence_skill_ids = {
         oid_str(skill_id)
         for item in evidence_items

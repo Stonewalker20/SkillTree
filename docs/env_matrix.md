@@ -24,6 +24,7 @@ This matrix lists the runtime variables required to deploy SkillBridge safely.
 | `SMTP_USE_SSL` | optional | Whether to connect via implicit SSL. | `false` |
 | `ADMIN_OWNER_EMAILS` | recommended | Comma-separated emails that should receive owner access on registration. | `owner@example.com` |
 | `ADMIN_TEAM_EMAILS` | recommended | Comma-separated emails that should receive team access on registration. | `team@example.com` |
+| `TRUSTED_PROXY_CIDRS` | recommended when deployed behind a reverse proxy or load balancer | Comma-separated CIDR ranges allowed to set `X-Forwarded-For`/`X-Real-IP`. Used to determine the real client IP for rate limiting and audit logs. Leave empty if the backend is reachable directly. | `10.0.0.0/8,172.16.0.0/12` |
 
 ## Billing
 
@@ -79,3 +80,4 @@ This matrix lists the runtime variables required to deploy SkillBridge safely.
 - `backend/.env.staging.example` and `backend/.env.production.example` cover the backend runtime.
 - Password reset emails are sent through SMTP when the SMTP settings above are configured.
 - New passwords should be at least 15 characters long. A mix of letters, numbers, and symbols is recommended.
+- Set `TRUSTED_PROXY_CIDRS` to the CIDR range(s) of your load balancer or reverse proxy (e.g. your cloud provider's ALB/ingress subnet) when deploying behind one. Only requests whose socket peer address falls inside one of these ranges have their `X-Forwarded-For`/`X-Real-IP` headers trusted; everyone else's forwarded headers are ignored. Leaving it empty is safe but means rate limiting and audit logs will key off the proxy's IP instead of the real client IP for every request. Setting it too broadly (e.g. `0.0.0.0/0`) lets any client spoof its own IP and bypass per-IP throttling, so scope it to the actual proxy/load balancer network only.

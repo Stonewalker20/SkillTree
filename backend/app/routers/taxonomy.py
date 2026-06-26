@@ -281,7 +281,7 @@ async def _infer_semantic_edges(db, root_skill_id: str, *, limit: int) -> list[S
         return []
     root_vec = vectors[0]
     ranked: list[tuple[float, dict]] = []
-    for doc, vec in zip(candidate_docs, vectors[1:]):
+    for doc, vec in zip(candidate_docs, vectors[1:], strict=False):
         score = cosine_similarity(root_vec, vec)
         if score >= 0.56:
             ranked.append((score, doc))
@@ -699,36 +699,66 @@ async def get_skill_trajectory(user=Depends(require_user)):
     )
 
 
+def _progress_skill_key(skill_name: str) -> str:
+    """Normalized key used to dedupe learning-path progress rows.
+
+    Mirrors the normalization applied in `app.main.normalize_learning_path_progress_records`
+    and backed by the unique (user_id, skill_key) index, so differently-cased or aliased
+    skill names ("Machine Learning" vs "machine learning") collapse to a single record.
+    """
+    return normalize_skill_text(skill_name)
+
+
 @router.get("/learning-path/progress", response_model=list[LearningPathProgressOut])
 async def list_learning_path_progress(user=Depends(require_user)):
     db = get_db()
-    rows = await db["learning_path_progress"].find({"user_id": user["_id"]}, {"skill_name": 1, "status": 1, "updated_at": 1}).sort("updated_at", -1).to_list(length=500)
-    return [
-        LearningPathProgressOut(
-            skill_name=str(row.get("skill_name") or ""),
-            status=str(row.get("status") or "not_started"),
-            updated_at=row.get("updated_at"),
+    rows = await db["learning_path_progress"].find(
+        {"user_id": user["_id"]},
+        {"skill_name": 1, "skill_key": 1, "status": 1, "updated_at": 1},
+    ).sort("updated_at", -1).to_list(length=500)
+    # Rows arrive newest-first, so the first one seen for a given skill_key is the freshest;
+    # collapse any older duplicates that normalize to the same key.
+    seen_keys: set[str] = set()
+    results: list[LearningPathProgressOut] = []
+    for row in rows:
+        skill_name = str(row.get("skill_name") or "").strip()
+        if not skill_name:
+            continue
+        skill_key = str(row.get("skill_key") or "") or _progress_skill_key(skill_name)
+        if skill_key in seen_keys:
+            continue
+        seen_keys.add(skill_key)
+        results.append(
+            LearningPathProgressOut(
+                skill_name=skill_name,
+                status=str(row.get("status") or "not_started"),
+                updated_at=row.get("updated_at"),
+            )
         )
-        for row in rows
-        if str(row.get("skill_name") or "").strip()
-    ]
+    return results
 
 
 @router.patch("/learning-path/progress", response_model=LearningPathProgressOut)
 async def patch_learning_path_progress(payload: LearningPathProgressPatchIn, user=Depends(require_user)):
     db = get_db()
+    skill_name = str(payload.skill_name or "").strip()
+    skill_key = _progress_skill_key(skill_name)
     doc = {
         "user_id": user["_id"],
-        "skill_name": str(payload.skill_name or "").strip(),
+        "skill_name": skill_name,
+        "skill_key": skill_key,
         "status": payload.status,
         "updated_at": now_utc(),
     }
+    # Match on the normalized key (not the raw name) so it lines up with the unique
+    # (user_id, skill_key) index and re-tracking the same skill under a different casing
+    # updates the existing row instead of creating a duplicate.
     await db["learning_path_progress"].update_one(
-        {"user_id": user["_id"], "skill_name": doc["skill_name"]},
+        {"user_id": user["_id"], "skill_key": skill_key},
         {"$set": doc},
         upsert=True,
     )
-    return LearningPathProgressOut(skill_name=doc["skill_name"], status=doc["status"], updated_at=doc["updated_at"])
+    return LearningPathProgressOut(skill_name=skill_name, status=doc["status"], updated_at=doc["updated_at"])
 
 
 @router.get("/learning-path/skill/{skill_name}", response_model=LearningPathSkillDetailOut)

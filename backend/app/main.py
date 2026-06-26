@@ -142,10 +142,11 @@ async def lifespan(_app: FastAPI):
     if settings.local_model_prewarm:
         await warm_local_models()
     status = get_inference_status()
-    print(
-        "SkillBridge AI mode:",
-        status["provider_mode"],
-        f"(embeddings={status['embeddings_provider']}, model={status['embedding_model']})",
+    emit_app_event(
+        "ai_mode_ready",
+        provider_mode=status["provider_mode"],
+        embeddings_provider=status["embeddings_provider"],
+        embedding_model=status["embedding_model"],
     )
     try:
         yield

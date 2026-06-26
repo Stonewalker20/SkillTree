@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from bson import ObjectId
-
 from app.utils.mongo import canonical_object_refs, oid_str, ref_values
 
 

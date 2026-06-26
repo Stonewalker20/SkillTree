@@ -135,7 +135,7 @@ def hashed_embedding(text: str, dims: int = 128) -> list[float]:
 def cosine_similarity(left: list[float], right: list[float]) -> float:
     if not left or not right or len(left) != len(right):
         return 0.0
-    return round(sum(a * b for a, b in zip(left, right)), 4)
+    return round(sum(a * b for a, b in zip(left, right, strict=False)), 4)
 
 
 def _load_sentence_transformer(model_name: str | None = None):
@@ -286,7 +286,7 @@ async def embed_texts(texts: Iterable[str], preferences: dict | None = None) -> 
 
             if missing_texts:
                 vectors = model.encode(missing_texts, normalize_embeddings=True, batch_size=min(32, len(missing_texts)))
-                for index, row in zip(missing_indices, vectors):
+                for index, row in zip(missing_indices, vectors, strict=False):
                     vector = list(map(float, row))
                     results[index] = vector
                     _cache_put(_EMBED_CACHE, f"{model_name}|{cleaned[index]}", vector)
@@ -501,7 +501,7 @@ async def extract_skill_candidates(text: str, max_candidates: int = 25, preferen
         except Exception:
             batch_result = [None] * len(batch)
 
-        for name, result in zip(batch, batch_result):
+        for name, result in zip(batch, batch_result, strict=False):
             ok = False
             category = ""
             if isinstance(result, dict):

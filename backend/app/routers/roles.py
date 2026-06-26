@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from datetime import datetime, timezone
 from bson import ObjectId
 from app.core.db import get_db

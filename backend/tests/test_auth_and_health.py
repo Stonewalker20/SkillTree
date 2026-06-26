@@ -2,9 +2,11 @@
 
 from types import SimpleNamespace
 from pathlib import Path
+import secrets
 
 from bson import ObjectId
 
+from app.core.auth import _pbkdf2, LEGACY_PBKDF2_ITERATIONS, PBKDF2_ITERATIONS
 from app.core.config import settings
 from app.utils.security import get_request_ip
 
@@ -70,7 +72,7 @@ def test_auth_register_login_profile_and_logout(test_context):
     locked_upload = client.post(
         "/auth/me/avatar",
         headers=auth_headers,
-        files={"file": ("avatar.png", b"fake-image-content", "image/png")},
+        files={"file": ("avatar.png", b"\x89PNG\r\n\x1a\nfake-image-content", "image/png")},
     )
     assert locked_upload.status_code == 402
     assert locked_upload.json()["detail"] == "Active subscription required for profile image uploads"
@@ -82,7 +84,7 @@ def test_auth_register_login_profile_and_logout(test_context):
     uploaded = client.post(
         "/auth/me/avatar",
         headers=auth_headers,
-        files={"file": ("avatar.png", b"fake-image-content", "image/png")},
+        files={"file": ("avatar.png", b"\x89PNG\r\n\x1a\nfake-image-content", "image/png")},
     )
     assert uploaded.status_code == 200
     first_avatar_url = uploaded.json()["avatar_url"]
@@ -94,7 +96,7 @@ def test_auth_register_login_profile_and_logout(test_context):
     uploaded_again = client.post(
         "/auth/me/avatar",
         headers=auth_headers,
-        files={"file": ("avatar.png", b"updated-image-content", "image/png")},
+        files={"file": ("avatar.png", b"\x89PNG\r\n\x1a\nupdated-image-content", "image/png")},
     )
     assert uploaded_again.status_code == 200
     second_avatar_url = uploaded_again.json()["avatar_url"]
@@ -108,6 +110,48 @@ def test_auth_register_login_profile_and_logout(test_context):
 
     delete = client.delete("/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert delete.status_code == 401
+
+
+def test_login_succeeds_for_legacy_low_iteration_password_hash(test_context):
+    # Accounts created before the PBKDF2 hardening pass have no "password_iterations" field
+    # and their hash was computed at the old (lower) iteration count. Login must keep working
+    # for them without forcing a password reset.
+    client = test_context["client"]
+    db = test_context["db"]
+
+    assert PBKDF2_ITERATIONS > LEGACY_PBKDF2_ITERATIONS
+
+    salt = secrets.token_hex(16)
+    legacy_hash = _pbkdf2("legacy-password-123", salt, LEGACY_PBKDF2_ITERATIONS)
+    db["users"].docs[0]["password_salt"] = salt
+    db["users"].docs[0]["password_hash"] = legacy_hash
+    db["users"].docs[0].pop("password_iterations", None)
+
+    login = client.post(
+        "/auth/login",
+        json={"email": "tester@example.com", "password": "legacy-password-123"},
+    )
+    assert login.status_code == 200
+
+    wrong = client.post(
+        "/auth/login",
+        json={"email": "tester@example.com", "password": "not-the-right-password"},
+    )
+    assert wrong.status_code == 401
+
+
+def test_register_stores_current_pbkdf2_iteration_count(test_context):
+    client = test_context["client"]
+    db = test_context["db"]
+
+    register = client.post(
+        "/auth/register",
+        json={"email": "freshaccount@example.com", "username": "freshaccount", "password": "password123456789"},
+    )
+    assert register.status_code == 200
+
+    stored = next(doc for doc in db["users"].docs if doc["email"] == "freshaccount@example.com")
+    assert stored["password_iterations"] == PBKDF2_ITERATIONS
 
 
 def test_auth_register_defaults_to_user_for_admin_allowlisted_email(test_context, monkeypatch):

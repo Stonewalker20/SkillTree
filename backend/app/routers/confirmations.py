@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Optional
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.auth import require_user
 from app.core.db import get_db
@@ -260,7 +259,7 @@ async def upsert_confirmation(payload: ConfirmationIn, user=Depends(require_user
 
     # If snapshot provided, verify it exists
     if snapshot_oid is not None:
-        snap = await db["resume_snapshots"].find_one({"_id": snapshot_oid})
+        snap = await db["resume_snapshots"].find_one({"_id": snapshot_oid, "user_id": {"$in": user_refs}})
         if not snap:
             raise HTTPException(status_code=404, detail="Resume snapshot not found")
 
