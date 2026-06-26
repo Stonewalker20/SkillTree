@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from pydantic import BaseModel, Field
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from datetime import datetime
 
 

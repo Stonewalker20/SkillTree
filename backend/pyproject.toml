@@ -1,0 +1,32 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+exclude = ["ml_sandbox", ".venv"]
+
+[tool.ruff.lint]
+# Pyflakes (F) catches unused imports/vars and undefined names; pycodestyle (E/W) catches
+# basic style and correctness issues; bugbear (B) catches common bug-prone patterns
+# (mutable defaults, bare except, etc.). E501 (line-too-long) is intentionally left out for
+# now: a small number of pre-existing files (tailor.py, taxonomy.py) exceed 120 chars and
+# should be addressed via a deliberate formatting pass rather than blind line-wrapping.
+select = ["E", "F", "W", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Package __init__.py files intentionally re-export names from submodules for convenience
+# imports elsewhere (e.g. `from app.models import PortfolioItemIn`); these are not unused.
+"__init__.py" = ["F401"]
+
+[tool.coverage.run]
+# ml_sandbox (backend/ml_sandbox/) sits outside the app/ package, so it's already excluded
+# by scoping source to "app" -- nothing there is measured.
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

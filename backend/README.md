@@ -24,6 +24,7 @@ Avatar uploads can run in one of two modes:
 - Expensive AI routes are throttled per authenticated user and IP address.
 - Sessions follow the backend token TTL and are rejected if the stored expiry is missing, malformed, or outside the allowed window.
 - Successful admin mutations append audit records to `audit_events` with actor, target, request IP, and action details.
+- Rate limiting and audit logs key off the request's real client IP, not the raw socket peer, when running behind a trusted reverse proxy or load balancer. Configure `TRUSTED_PROXY_CIDRS` (see below) so this resolves correctly and isn't spoofable.
 
 ## Install
 
@@ -62,6 +63,7 @@ MEDIA_S3_ACCESS_KEY_ID=
 MEDIA_S3_SECRET_ACCESS_KEY=
 MEDIA_S3_PUBLIC_BASE_URL=
 MEDIA_S3_KEY_PREFIX=avatars
+TRUSTED_PROXY_CIDRS=
 ```
 
 Notes:
@@ -75,6 +77,7 @@ Notes:
 - Stripe variables are required when live subscription checkout is enabled.
 - `MEDIA_STORAGE_MODE=local` keeps uploads on disk for development.
 - `MEDIA_STORAGE_MODE=s3` requires the S3/R2 endpoint, bucket, region, access key, secret key, and a public base URL if the bucket is not already public.
+- `TRUSTED_PROXY_CIDRS` is a comma-separated list of CIDR ranges (e.g. `10.0.0.0/8,172.16.0.0/12`) for your reverse proxy or load balancer. Only requests from those ranges have their `X-Forwarded-For`/`X-Real-IP` headers trusted for determining the client's real IP; leave it empty if the backend is reached directly. Don't set it to an overly broad range, since that would let any client spoof its IP and dodge per-IP rate limiting.
 - See `../docs/env_matrix.md` for the full deploy-time variable matrix.
 
 ## Run

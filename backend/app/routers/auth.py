@@ -8,13 +8,13 @@ import logging
 import re
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request
-from bson import ObjectId
 from pymongo.errors import DuplicateKeyError
 import secrets
 
 from app.core.db import get_db
 from app.core.auth import (
     TOKEN_TTL_DAYS,
+    LEGACY_PBKDF2_ITERATIONS,
     hash_password,
     verify_password,
     create_session,
@@ -40,6 +40,7 @@ from app.models.auth import (
 from app.utils.email_delivery import password_reset_email_enabled, send_password_reset_email
 from app.utils.mongo import oid_str, unique_strings
 from app.utils.media_storage import avatar_storage_key_from_user, get_avatar_storage_provider
+from app.utils.file_validation import sniff_image_type, IMAGE_CONTENT_TYPES
 from app.utils.security import AUTH_RATE_LIMITS, build_rate_limit_identifier, enforce_rate_limit
 from app.core.config import settings
 
@@ -115,13 +116,18 @@ def serialize_user_out(user: dict) -> UserOut:
     )
 
 
-def _password_parts_for_user(user: dict) -> tuple[str | None, str | None]:
+def _password_parts_for_user(user: dict) -> tuple[str | None, str | None, int]:
     password_salt = user.get("password_salt")
     password_hash = user.get("password_hash")
+    password_iterations = user.get("password_iterations")
     if isinstance(password_hash, dict):
         password_salt = password_hash.get("salt")
+        password_iterations = password_hash.get("iterations", password_iterations)
         password_hash = password_hash.get("hash")
-    return password_salt, password_hash
+    # Accounts created before the PBKDF2 iteration count was raised don't carry an explicit
+    # password_iterations field; their hash was computed at the old default, so fall back to
+    # that value rather than the current (higher) one.
+    return password_salt, password_hash, int(password_iterations or LEGACY_PBKDF2_ITERATIONS)
 
 
 async def _delete_avatar_if_present(user: dict):
@@ -206,6 +212,7 @@ async def register(payload: RegisterIn, request: Request):
         "username": payload.username,
         "password_salt": password_parts["salt"],
         "password_hash": password_parts["hash"],
+        "password_iterations": password_parts["iterations"],
         "role": "user",
         "is_active": True,
         "avatar_preset": "midnight",
@@ -257,12 +264,12 @@ async def login(payload: LoginIn, request: Request):
     if not is_user_active(user):
         raise HTTPException(status_code=403, detail="Account deactivated")
 
-    password_salt, password_hash = _password_parts_for_user(user)
+    password_salt, password_hash, password_iterations = _password_parts_for_user(user)
 
     if not password_salt or not password_hash:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    if not verify_password(payload.password, password_salt, password_hash):
+    if not verify_password(payload.password, password_salt, password_hash, password_iterations):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = await create_session(user["_id"])
@@ -336,8 +343,12 @@ async def confirm_password_reset(payload: PasswordResetConfirmIn, request: Reque
         await db[PASSWORD_RESET_COLLECTION].delete_one({"_id": token_doc["_id"]})
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
 
-    password_salt, password_hash = _password_parts_for_user(user)
-    if password_salt and password_hash and verify_password(payload.new_password, password_salt, password_hash):
+    password_salt, password_hash, password_iterations = _password_parts_for_user(user)
+    if (
+        password_salt
+        and password_hash
+        and verify_password(payload.new_password, password_salt, password_hash, password_iterations)
+    ):
         raise HTTPException(status_code=400, detail="New password must be different")
 
     changed_at = now_utc()
@@ -348,6 +359,7 @@ async def confirm_password_reset(payload: PasswordResetConfirmIn, request: Reque
             "$set": {
                 "password_salt": password_parts["salt"],
                 "password_hash": password_parts["hash"],
+                "password_iterations": password_parts["iterations"],
                 "password_changed_at": changed_at,
                 "updated_at": changed_at,
             }
@@ -481,10 +493,10 @@ async def change_password(payload: PasswordChangeIn, request: Request, user=Depe
         window_seconds=AUTH_RATE_LIMITS["password_change"][1],
     )
 
-    password_salt, password_hash = _password_parts_for_user(user)
+    password_salt, password_hash, password_iterations = _password_parts_for_user(user)
     if not password_salt or not password_hash:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    if not verify_password(payload.current_password, password_salt, password_hash):
+    if not verify_password(payload.current_password, password_salt, password_hash, password_iterations):
         raise HTTPException(status_code=401, detail="Current password is incorrect")
     if secrets.compare_digest(payload.current_password, payload.new_password):
         raise HTTPException(status_code=400, detail="New password must be different")
@@ -497,6 +509,7 @@ async def change_password(payload: PasswordChangeIn, request: Request, user=Depe
             "$set": {
                 "password_salt": password_parts["salt"],
                 "password_hash": password_parts["hash"],
+                "password_iterations": password_parts["iterations"],
                 "password_changed_at": changed_at,
                 "updated_at": changed_at,
             }
@@ -536,12 +549,20 @@ async def upload_avatar(request: Request, file: UploadFile = File(...), user=Dep
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Avatar file is too large")
 
+    # The extension check above only constrains the filename, which is fully attacker-
+    # controlled. Sniff the actual bytes so a polyglot file (e.g. HTML/SVG renamed to
+    # "avatar.png") can't slip through, and derive the stored content-type from the
+    # verified bytes rather than the client-supplied (also spoofable) header.
+    sniffed_type = sniff_image_type(content)
+    if sniffed_type is None:
+        raise HTTPException(status_code=400, detail="File content does not match a supported image format")
+
     storage = get_avatar_storage_provider()
     stored = await storage.upload_avatar(
         user_id=oid_str(user["_id"]),
         filename=filename,
         content=content,
-        content_type=file.content_type,
+        content_type=IMAGE_CONTENT_TYPES[sniffed_type],
     )
     await _delete_avatar_if_present(user)
 

@@ -13,6 +13,7 @@ from app.utils.ai import normalize_ai_preferences
 from app.utils.rag import sync_rag_document
 from app.utils.mongo import oid_str, ref_values
 from app.utils.rewards import safe_increment_reward_counter
+from app.utils.file_validation import sniff_pdf, sniff_docx
 from pypdf import PdfReader
 from docx import Document
 import io
@@ -108,6 +109,8 @@ async def ingest_resume_pdf(user_id: str = Form(...), file: UploadFile = File(..
         raise HTTPException(status_code=400, detail="Empty file.")
     if len(b) > MAX_RESUME_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Resume uploads must be 5 MB or smaller.")
+    if not sniff_pdf(b):
+        raise HTTPException(status_code=400, detail="File content does not match a valid PDF.")
     raw_text = extract_pdf_text(b)
     if len(raw_text) < 50:
         raise HTTPException(status_code=400, detail="Extracted PDF text too short.")
@@ -150,6 +153,8 @@ async def ingest_resume_docx(user_id: str = Form(...), file: UploadFile = File(.
         raise HTTPException(status_code=400, detail="Empty file.")
     if len(b) > MAX_RESUME_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Resume uploads must be 5 MB or smaller.")
+    if not sniff_docx(b):
+        raise HTTPException(status_code=400, detail="File content does not match a valid DOCX.")
     raw_text = extract_docx_text(b)
     if len(raw_text) < 50:
         raise HTTPException(status_code=400, detail="Extracted DOCX text too short.")

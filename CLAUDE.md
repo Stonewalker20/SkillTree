@@ -40,6 +40,7 @@ Key architecture patterns:
   - `rag.py` - RAG chunking and vector storage
   - `media_storage.py` - Local or S3 avatar uploads
   - `security.py` - Rate limiting and throttling
+  - `file_validation.py` - Magic-byte/content-sniffing checks for uploads (avatar images, resume PDF/DOCX); never trust filename extension or client-supplied content-type alone
 
 Startup flow:
 1. Lifespan hook validates settings, connects to MongoDB, creates indexes
@@ -164,6 +165,9 @@ pytest -k "test_skill" -v
 
 # Install dev dependencies for testing
 pip install -r requirements-dev.txt
+
+# Run tests with coverage (requires requirements-dev.txt)
+pytest -q --cov=app --cov-report=term-missing
 ```
 
 ### Frontend
@@ -184,11 +188,18 @@ npm run build
 npm run lint
 npm run lint:fix
 
+# Format and check formatting (Prettier)
+npm run format
+npm run format:check
+
 # Run tests
 npm test
 
 # Watch mode for tests
 npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
 ```
 
 ## Code Patterns and Conventions
@@ -211,6 +222,7 @@ npm run test:watch
 - **Components:** UI primitives from Radix wrapped with Tailwind classes
 - **Error handling:** `RouteErrorBoundary` catches route errors; individual components should handle API errors
 - **Styling:** Tailwind 4 with classname merging via `clsx`; custom components are shadcn-inspired
+- **Formatting:** Prettier config in `frontend/.prettierrc.json`; run `npm run format` to write, `npm run format:check` to verify in CI without modifying files
 
 ## Testing
 
@@ -226,16 +238,19 @@ Tests use pytest with a fake Mongo fixture (`tests/fake_mongo.py`). Test files:
 
 Run all: `pytest -q`
 Run specific: `pytest tests/test_auth_and_health.py::test_register -v`
+Run with coverage: `pytest -q --cov=app --cov-report=term-missing` (config in `backend/pyproject.toml`)
 
 ### Frontend
 
-Vitest runs in Node mode with baseline smoke tests:
+Vitest runs in jsdom mode (config + setup file: `frontend/vitest.config.ts`, `frontend/src/test/setup.ts`). Test files live in `frontend/src/test/`:
 - `avatarPresets.test.ts` - Avatar preset logic
 - `headerTheme.test.ts` - Theme detection
 - `rewardsSummary.test.ts` - Rewards calculation
+- `dashboardPage.test.tsx`, `jobsPage.test.tsx`, `evidencePage.test.tsx`, `skillsPage.test.tsx`, `adminPage.test.tsx`, `adminMlflowPage.test.tsx` - Page-level smoke tests for `Dashboard`, `Jobs`, `Evidence`, `Skills`, `Admin`, `AdminMlflow`; render the real page component inside `MemoryRouter` with `AuthContext`/`ActivityContext`/`AccountPreferencesContext` and `services/api` mocked via `vi.mock`, then assert it renders a stable heading without throwing. These guard against render-breaking regressions; they do not cover interactive flows.
 
 Run tests: `npm test`
 Watch mode: `npm run test:watch`
+Run with coverage: `npm run test:coverage` (config in `frontend/vitest.config.ts`)
 
 ## Key Files and Workflows
 

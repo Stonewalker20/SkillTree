@@ -76,6 +76,7 @@ def _seed(fake_db: FakeDatabase):
             "username": "tester",
             "password_salt": password_parts["salt"],
             "password_hash": password_parts["hash"],
+            "password_iterations": password_parts["iterations"],
             "role": "user",
             "subscription_status": "active",
             "subscription_plan": "pro",

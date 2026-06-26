@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from app.core.db import get_db
 from app.core.auth import require_user
-from app.utils.mongo import oid_str, ref_query, to_object_id
+from app.utils.mongo import oid_str, ref_query
 from app.models.project import (
     ProjectIn,
     ProjectOut,

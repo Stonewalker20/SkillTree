@@ -26,6 +26,7 @@ from app.utils.skill_catalog import (
     should_use_strict_exact_match,
 )
 from app.utils.text_safety import sanitize_user_evidence_text
+from app.utils.file_validation import sniff_pdf, sniff_docx
 from app.utils.mongo import oid_str, ref_query, ref_values, to_object_id, try_object_id
 import json
 import io
@@ -107,11 +108,17 @@ def serialize_evidence(doc: dict) -> dict:
 def extract_text_from_upload(filename: str, raw: bytes) -> str:
     lower = (filename or "").lower()
     if lower.endswith(".pdf"):
+        # The filename extension is attacker-controlled, so confirm the bytes are
+        # actually a PDF before handing them to the parser.
+        if not sniff_pdf(raw):
+            raise HTTPException(status_code=400, detail="File content does not match a valid PDF.")
         from pypdf import PdfReader
 
         reader = PdfReader(io.BytesIO(raw))
         return sanitize_user_evidence_text("\n".join((page.extract_text() or "") for page in reader.pages).strip())
     if lower.endswith(".docx"):
+        if not sniff_docx(raw):
+            raise HTTPException(status_code=400, detail="File content does not match a valid DOCX.")
         from docx import Document
 
         doc = Document(io.BytesIO(raw))
