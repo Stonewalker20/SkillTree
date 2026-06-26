@@ -107,7 +107,7 @@ async def sync_rag_document(
     vectors, provider = await embed_texts(chunks, preferences=prefs)
     now = now_utc()
     count = 0
-    for index, (chunk, vector) in enumerate(zip(chunks, vectors)):
+    for index, (chunk, vector) in enumerate(zip(chunks, vectors, strict=False)):
         await db["rag_chunks"].insert_one(
             {
                 "user_id": user_oid,

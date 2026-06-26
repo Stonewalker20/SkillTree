@@ -27,8 +27,29 @@ _CONTROL_RE = re.compile(f"[{re.escape(_CONTROL_CHARS)}]")
 _HORIZONTAL_WS_RE = re.compile(r"[^\S\r\n]+")
 _EXCESS_NEWLINES_RE = re.compile(r"\n{3,}")
 
+# Standalone headings that introduce a trailing citations/bibliography block. When evidence
+# text (e.g. a pasted paper) ends with one of these sections, it is noise for skill extraction
+# and storage, so the heading and everything after it is dropped.
+_REFERENCES_HEADING_RE = re.compile(
+    r"^(references|reference list|bibliography|works cited|citations)\s*:?\s*$",
+    re.IGNORECASE,
+)
+
 # Upper bound on stored evidence text to keep documents and prompts bounded.
 MAX_EVIDENCE_TEXT_CHARS = 200_000
+
+
+def _strip_references_section(text: str) -> str:
+    """Drop a trailing citations/references block introduced by a standalone heading.
+
+    Only a heading that appears after the first line is treated as a section break, so text
+    that merely starts with the word "References" is left untouched.
+    """
+    lines = text.split("\n")
+    for index, line in enumerate(lines):
+        if index > 0 and _REFERENCES_HEADING_RE.match(line.strip()):
+            return "\n".join(lines[:index]).strip()
+    return text
 
 
 def sanitize_user_evidence_text(text: str | None, *, max_chars: int = MAX_EVIDENCE_TEXT_CHARS) -> str:
@@ -40,6 +61,7 @@ def sanitize_user_evidence_text(text: str | None, *, max_chars: int = MAX_EVIDEN
       * drop NUL bytes and other C0/C1 control characters (keeping tab/newline/CR)
       * normalize line endings to ``\\n`` and collapse excessive blank lines
       * collapse runs of horizontal whitespace and trim trailing spaces per line
+      * drop a trailing citations/references section if one is present
       * cap the result at ``max_chars`` characters
 
     It is safe to call on already-clean text and is idempotent.
@@ -62,6 +84,9 @@ def sanitize_user_evidence_text(text: str | None, *, max_chars: int = MAX_EVIDEN
 
     # Limit consecutive blank lines to at most one.
     text = _EXCESS_NEWLINES_RE.sub("\n\n", text)
+
+    # Drop a trailing citations/references block if one is present.
+    text = _strip_references_section(text)
 
     text = text.strip()
 

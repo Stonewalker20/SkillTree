@@ -849,7 +849,7 @@ def _select_tailored_resume_items(
     positive_items = [(score, item) for score, item in scored_items if score > 0]
     candidate_items = positive_items or scored_items
 
-    for score, item in candidate_items:
+    for _score, item in candidate_items:
         item_id = oid_str(item.get("_id"))
         if not item_id or item_id in seen_ids:
             continue
@@ -1797,7 +1797,7 @@ async def _rewrite_uploaded_resume_raw_text(
         return _join_resume_lines(lines), "", 0
 
     rewritten_bullets, provider = await rewrite_resume_bullets(job_text, bullets, focus, ai_preferences)
-    for line_index, rewritten, (indent, marker) in zip(bullet_indices, rewritten_bullets or bullets, bullet_prefixes):
+    for line_index, rewritten, (indent, marker) in zip(bullet_indices, rewritten_bullets or bullets, bullet_prefixes, strict=False):
         content = _resume_bullet_text(rewritten)
         lines[line_index] = f"{indent}{marker} {content}".rstrip()
 
@@ -2361,7 +2361,7 @@ async def match_job(payload: dict, request: Request, user=Depends(require_user))
             item_vectors = vectors[1 + len(skill_texts) :]
             ranked_related: list[tuple[float, str]] = []
             skill_similarity_by_id: dict[str, float] = {}
-            for skill_id, skill_vec in zip(ordered_user_skill_ids, skill_vectors):
+            for skill_id, skill_vec in zip(ordered_user_skill_ids, skill_vectors, strict=False):
                 sim = cosine_similarity(job_vec, skill_vec)
                 skill_similarity_by_id[skill_id] = sim
                 if skill_id in matched_skill_id_set:
@@ -2375,7 +2375,7 @@ async def match_job(payload: dict, request: Request, user=Depends(require_user))
             if item_vectors:
                 extracted_skill_id_set = set(extracted_skill_ids)
                 weighted_item_scores: list[float] = []
-                for item, item_vec in zip(items, item_vectors):
+                for item, item_vec in zip(items, item_vectors, strict=False):
                     sim = cosine_similarity(job_vec, item_vec)
                     item_skill_id_set = {str(sid) for sid in (item.get("skill_ids") or []) if sid is not None}
                     overlap_ratio = len(item_skill_id_set & extracted_skill_id_set) / max(1, len(item_skill_id_set | extracted_skill_id_set))
@@ -3349,7 +3349,7 @@ async def rewrite_tailored_resume_bullets(tailored_id: str, payload: RewriteBull
     rewritten_bullets, provider = await rewrite_resume_bullets(job_text, bullets, payload.focus)
     rewritten_bullets = [_normalize_resume_bullet(bullet) for bullet in rewritten_bullets]
     rewritten_count = 0
-    for line_index, bullet in zip(bullet_indices, rewritten_bullets):
+    for line_index, bullet in zip(bullet_indices, rewritten_bullets, strict=False):
         work_lines[line_index] = bullet
         rewritten_count += 1
 

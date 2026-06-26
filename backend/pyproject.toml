@@ -9,8 +9,28 @@ exclude = ["ml_sandbox", ".venv"]
 # (mutable defaults, bare except, etc.). E501 (line-too-long) is intentionally left out for
 # now: a small number of pre-existing files (tailor.py, taxonomy.py) exceed 120 chars and
 # should be addressed via a deliberate formatting pass rather than blind line-wrapping.
+# B904 (raise-without-from-inside-except) is likewise deferred: ~40 pre-existing router
+# handlers translate a caught parse/lookup error into an HTTPException without `from`, which
+# is harmless here, and adding explicit chaining everywhere is its own deliberate pass.
 select = ["E", "F", "W", "B"]
-ignore = ["E501"]
+ignore = ["E501", "B904"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency/parameter markers are *called* in argument defaults by design
+# (e.g. `user=Depends(require_user)`, `file: UploadFile = File(...)`), so B008 would flag
+# every endpoint. Treat them as immutable calls so genuine B008 cases (mutable defaults like
+# `x=[]`) still fire.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.Form",
+    "fastapi.File",
+    "fastapi.Security",
+]
 
 [tool.ruff.lint.per-file-ignores]
 # Package __init__.py files intentionally re-export names from submodules for convenience
